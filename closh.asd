@@ -5,9 +5,8 @@
   :components ((:file "package")
                (:file "util")
                (:file "ast")
-               (:file "lexer")
-               (:file "parser")
+               (:file "parse")
                (:file "closh"))
-  :depends-on (:alexandria :iterate :anaphora
-               :split-sequence :cl-ppcre :cl-lex))
+  :depends-on (:alexandria :iterate :anaphora :split-sequence
+               :cl-ppcre :cl-lex :yacc))
 
