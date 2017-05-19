@@ -22,10 +22,13 @@
 (defmethod dump-to-str ((obj closh-object))
   (class-name obj))
 
-(defmethod dump-to-str ((lst closh-list))
+(defmethod dump-to-str ((lst closh-cons))
   (format nil "(~a . ~a)"
           (dump-to-str (closh-car lst))
           (dump-to-str (closh-cdr lst))))
+
+(defmethod dump-to-str ((cnil closh-nil))
+  (format nil "[nil]"))
 
 (defmethod dump-to-str ((const closh-const))
   (format nil "[const : ~a]" (value const)))
@@ -48,13 +51,52 @@
       (make-instance 'closh-nil)
       (make-instance 'closh-cons
                      :closh-car (car vals)
-                     :closh-cdr (make-closh-list (cdr vals)))))
+                     :closh-cdr (apply #'make-closh-list
+                                       (cdr vals)))))
 
 ;;closh-null
 ;;function "null" for closh expression
 (defgeneric closh-null (obj))
 (defmethod closh-null ((obj closh-exp)) nil)
 (defmethod closh-null ((obj closh-nil)) t)
+
+(defgeneric closh-length (lst))
+(defmethod closh-length ((lst closh-list))
+  (if (closh-null lst) 0 (1+ (closh-length (closh-cdr lst)))))
+
+(defgeneric closh-reverse (lst))
+(defmethod closh-reverse ((lst closh-list))
+  (funcall
+   (alambda (lst acc)
+     (if (closh-null lst)
+         acc
+         (self (closh-cdr lst)
+               (make-closh-cons (closh-car lst) acc))))
+   lst (make-instance 'closh-nil)))
+
+
+(defun closh-append (&rest lsts)
+  (funcall
+   (alambda (lsts acc)
+     (cond ((null lsts) (closh-reverse acc))
+           ((closh-null (car lsts))
+            (self (cdr lsts) acc))
+           (t (self (cons (closh-cdr (car lsts)) (cdr lsts))
+                    (make-closh-cons (closh-car (car lsts))
+                                     acc)))))
+   lsts (make-instance 'closh-nil)))
+
+(defgeneric closh-map (func lst))
+(defmethod closh-map (func (lst closh-list))
+  (funcall
+   (alambda (lst acc)
+     (if (closh-null lst)
+         (closh-reverse acc)
+         (self (closh-cdr lst)
+               (make-closh-cons (funcall func (closh-car lst))
+                                acc))))
+   lst (make-instance 'closh-nil)))
+
 
 
 
