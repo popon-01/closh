@@ -57,6 +57,8 @@
            (closh-lexer str)))
 
 (defun parse-test (str)
-  (mapcar #'dump-to-str
-          (parse-with-lexer (closh-lexer str) closh-parser)))
+  (parse-with-lexer (closh-lexer str) closh-parser))
+
+(defun dump-parse-test (str)
+  (mapcar #'dump-to-str (parse-test str)))
 
