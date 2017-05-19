@@ -108,3 +108,31 @@ load
 C. 末尾呼び出し最適化(TCO)
 
 D. Common-Lisp風マクロ
+
+-- 方針 --
+tokenize : Done
+-> read (リードマクロの展開とリストへの整形) : Done
+-> macro-expand
+-> syntax-check (コード実行部を描きやすい形に整形するかも)
+-> eval
+-> print
+
+lambda set! if and or begin -> special form
+let letrec do -> ?
+let* cond -> macro?
+
+
+(defmacro let* (binds &body body)
+  (if (null binds)
+      `(begin ,@body)
+      `(let (,(car binds)) (let* ,(cdr binds) ,@body))))
+
+else -> #t に置き換え 
+(defmacro cond (&body clauses)
+  (if (null (cdr clauses))
+      `(if ,(car (first clauses))
+           (begin ,@(cdr (first clauses))))
+      `(if ,(car (first clauses))
+           (begin ,@(cdr (first clauses)))
+           (cond (cdr clauses)))))
+

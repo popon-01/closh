@@ -4,8 +4,10 @@
   :serial t
   :components ((:file "package")
                (:file "util")
-               (:file "ast")
-               (:file "parse")
+               (:file "object")
+               (:file "env")
+               (:file "read")
+               (:file "eval")
                (:file "closh"))
   :depends-on (:alexandria :iterate :anaphora :split-sequence
                :cl-ppcre :cl-lex :yacc))
