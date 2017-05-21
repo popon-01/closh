@@ -8,7 +8,6 @@
                (:file "env")
                (:file "read")
                (:file "eval")
-               (:file "print")
                (:file "closh"))
   :depends-on (:alexandria :iterate :anaphora :split-sequence
                :cl-ppcre :cl-lex :yacc))

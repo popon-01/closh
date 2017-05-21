@@ -20,11 +20,11 @@
   (:start-symbol closh)
   (:terminals (lparen rparen period quote
                       bool string sym num))
-  
+
   (closh (exp closh (lambda (exp closh)
                       (cons exp closh)))
          (exp (lambda (exp) (list exp))))
-  
+
   (exp (num (lambda (num)
               (make-instance 'closh-num :value num)))
        (bool (lambda (bool)

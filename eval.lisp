@@ -11,6 +11,20 @@
 (define-class op-or (closh-op))
 (define-class op-begin (closh-op))
 
+(defgeneric eval-closh-object (obj env))
+(defmethod eval-closh-object ((const closh-const) (env closh-env))
+  (declare (ignore env)) const)
+(defmethod eval-closh-object ((sym closh-sym) (env closh-env))
+  (get-env sym env))
+
+(defun closh-eval (objects env &optional (ret nil))
+  (if (null objects) ret
+      (progn
+        (let ((eval-car
+               (eval-closh-object (car objects) env)))
+          (closh-eval (cdr objects) env eval-car)))))
+
+
 (defgeneric bind-args (sym argv env))
 (defmethod bind-args ((obj closh-object) (argv closh-list)
                       (env closh-env))
@@ -37,10 +51,10 @@
 (defgeneric call-func (func argv env))
 
 (defmethod call-func ((func closh-func) argv env)
-  (closh-eval (body func)
-              (bind-args (args func) argv
-                         (make-instance 'closh-local
-                                        :parent (penv func)))))
+  (eval-closh-object (body func)
+                     (bind-args (args func) argv
+                                (make-instance 'closh-local
+                                               :parent (penv func)))))
 
 (defgeneric macro-callp (obj env))
 
@@ -71,14 +85,10 @@
     (if callp (closh-macroexpand ret env) ret)))
 
 
-(defgeneric closh-eval (obj env))
 (defgeneric call-op (op argv env))
+
 #|
-(defmethod closh-eval ((const closh-const) (env closh-env))
-  (declare (ignore env)) (value const))
-(defmethod closh-eval ((sym closh-sym) (env closh-env))
-  (get-env sym env))
-(defmethod closh-eval ((lst closh-list) (env closh-env))
+(defmethod eval-closh-object ((lst closh-list) (env closh-env))
   (let ((expanded (closh-macroexpand lst env)))
     (call-op (get-env (closh-car expanded))
              (closh-cdr expanded) env)))
@@ -95,7 +105,7 @@
 
 (defmethod call-op ((func closh-lambda) (argv closh-list)
                     (env closh-env))
-  (call-func func (closh-map (lambda (exp) (closh-eval exp env))
+  (call-func func (closh-map (lambda (exp) (eval-closh-object exp env))
                              argv)
              env))
 

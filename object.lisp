@@ -29,13 +29,17 @@
           (dump-to-str (closh-cdr lst))))
 
 (defmethod dump-to-str ((cnil closh-nil))
-  (format nil "[nil]"))
+  (format nil "()"))
 
-(defmethod dump-to-str ((const closh-const))
-  (format nil "[const : ~a]" (value const)))
+(defmethod dump-to-str ((num closh-num))
+  (format nil "~a" (value num)))
+(defmethod dump-to-str ((bool closh-bool))
+  (if (value bool) (format nil "#t") (format nil "#f")))
+(defmethod dump-to-str ((str closh-str))
+  (format nil "\"~a\"" (value str)))
 
 (defmethod dump-to-str ((sym closh-sym))
-  (format nil "[symbol : ~a]" (sym sym)))
+  (format nil "~a" (symbol-name (sym sym))))
 
 
 ;;make-closh-cons, make-closh-list
