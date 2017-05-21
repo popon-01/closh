@@ -5,11 +5,8 @@
   (force-output)
   (read-line *standard-input*))
 
-(defun closh-read (str) str)
-
-(defun closh-eval (ast) ast)
-
-(defun closh-print (exp) exp)
+(defun closh-read (str)
+  (parse-with-lexer (closh-lexer str) closh-parser))
 
 (defun read-eval-print ()
   (let ((line (raw-input "USER> ")))

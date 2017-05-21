@@ -1,6 +1,7 @@
 (in-package :closh)
 
-(define-class closh-object ())
+(define-class closh-object ()
+  (closh-macrop nil) (closh-symbolp nil))
 
 (define-class closh-exp (closh-object))
 
@@ -8,7 +9,7 @@
 (define-class closh-nil (closh-list) (value nil))
 (define-class closh-cons (closh-list) closh-car closh-cdr)
 
-(define-class closh-sym (closh-exp) sym)
+(define-class closh-sym (closh-exp) (closh-symbolp t) sym)
 
 (define-class closh-const (closh-exp) value)
 (define-class closh-num (closh-const))
