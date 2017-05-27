@@ -9,8 +9,13 @@
 (defgeneric update-env (sym value env))
 
 (defmethod add-env ((sym closh-sym) (value closh-object)
-                      (env closh-env))
+                    (env closh-env))
   (setf (gethash (sym sym) (table env)) value) env)
+
+;; for init
+(defmethod add-env ((sym symbol) (value closh-object)
+                    (env closh-env))
+  (setf (gethash sym (table env)) value) env)
 
 
 (defmethod get-env ((sym closh-sym) (env closh-global))

@@ -10,10 +10,9 @@
   ("#t"     (return (values 'bool t)))
   ("\"([^\\\"]|\\.)*?\"" (return (values 'string (string-trim "\"" $@))))
   ("[0-9A-Za-z!$%&*+-./<=>?@^_]+"
-   (if (string= (scan-to-strings
-                 "-?(0|[1-9][0-9]*(\\.[0-9]*)?)" $@) $@)
+   (if (scan-to-strings "^-?(0|[1-9][0-9]*(\\.[0-9]*)?)$" $@)
        (return (values 'num (read-from-string $@)))
-       (return (values 'sym (intern $@ 'keyword)))))
+       (return (values 'sym (intern (string-upcase $@) 'keyword)))))
   ("." (return (values 'undefined 'undefined))))
 
 (define-parser closh-parser
@@ -47,7 +46,8 @@
                                     (make-closh-cons exp exps))) 
                 (exp (lambda (exp)
                        (make-closh-list exp)))
-                (exp period exp (lambda (exp1 exp2)
+                (exp period exp (lambda (exp1 p exp2)
+                                  (declare (ignore p))
                                   (make-closh-cons exp1 exp2)))))
 
 (defun lex-test (str)

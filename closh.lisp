@@ -20,8 +20,19 @@
                                *global-enviroment*))
       t)))
 
+
+(defmacro init-global (&body key-and-values)
+  `(progn
+     (setf *global-enviroment* (make-instance 'closh-global))
+     ,@(iterate (for l on key-and-values by #'cddr)
+                (collect
+                    `(add-env ,(intern (symbol-name (first l))
+                                       :keyword)
+                              ,(second l)
+                              *global-enviroment*)))))
+
 (defun init-closh ()
-  (setf *global-enviroment* (make-instance 'closh-global)))
+  (init-global quote (make-instance 'op-quote)))
 
 (defun closh-repl ()
   (init-closh)
