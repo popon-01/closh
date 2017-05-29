@@ -27,6 +27,51 @@
                         (make-instance 'closh-sym :sym :begin)
                         (closh-cdr argv))))
 
+(defmethod call-op ((op closh-let) (argv closh-cons)
+                    (env closh-env))
+  (let ((syms (closh-map #'closh-car (closh-car argv)))
+        (vals (closh-map (lambda (bind)
+                           (closh-car (closh-cdr bind)))
+                         (closh-car argv))))
+    (eval-closh-object (make-closh-cons
+                        (make-instance 'closh-sym :sym :begin)
+                        (closh-cdr argv))
+                       (funcall
+                        (alambda (syms vals local)
+                          (if (closh-null syms) local
+                              (let ((val (eval-closh-object
+                                          (closh-car vals) env)))
+                                (self (closh-cdr syms)
+                                      (closh-cdr vals)
+                                      (add-env (closh-car syms) val
+                                               local)))))
+                        syms vals
+                        (make-instance 'closh-local :parent env)))))
+
+(defmethod call-op ((op closh-let*) (argv closh-cons)
+                    (env closh-env))
+  (let ((syms (closh-map #'closh-car (closh-car argv)))
+        (vals (closh-map (lambda (bind)
+                           (closh-car (closh-cdr bind)))
+                         (closh-car argv))))
+    (eval-closh-object (make-closh-cons
+                        (make-instance 'closh-sym :sym :begin)
+                        (closh-cdr argv))
+                       (funcall
+                        (alambda (syms vals local)
+                          (if (closh-null syms) local
+                              (let* ((newenv (make-instance 'closh-local
+                                                            :parent env))
+                                     (val (eval-closh-object
+                                           (closh-car vals) local)))
+                                (self (closh-cdr syms)
+                                      (closh-cdr vals)
+                                      (add-env (closh-car syms) val
+                                                newenv)))))
+                        syms vals
+                        (make-instance 'closh-local :parent env)))))
+
+
 (defmethod call-op ((op closh-or) (argv closh-cons)
                     (env closh-env))
   (funcall

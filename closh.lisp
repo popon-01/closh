@@ -40,6 +40,8 @@
                quote (make-instance 'closh-quote)
                set! (make-instance 'closh-set!)
                lambda (make-instance 'closh-lambda)
+               let (make-instance 'closh-let)
+               let* (make-instance 'closh-let*)
                or (make-instance 'closh-or)
                and (make-instance 'closh-and)
                begin (make-instance 'closh-begin)
