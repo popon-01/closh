@@ -26,23 +26,27 @@
 ;;object/closh-op
 (define-class closh-op (closh-object) (name "unknown"))
 
-;;object/closh-op/builtin
+;;object/closh-op/
+(define-class closh-func (closh-op)
+  penv args body)
+(define-class closh-macro (closh-op)
+  penv args body (closh-macrop t))
 (define-class closh-builtin (closh-op) func)
 
-;;object/closh-op/func
-(define-class closh-func (closh-op) penv args body)
-(define-class closh-macro (closh-func) (closh-macrop t))
-(define-class closh-lambda (closh-func))
-
-;;object/closh-op special forms
-(define-class op-define (closh-op) (name "define"))
-(define-class op-quote (closh-op) (name "quote"))
-(define-class op-set! (closh-op) (name "set!"))
-(define-class op-lambda (closh-op) (name "lambda"))
-(define-class op-cond (closh-op) (name "cond"))
-(define-class op-and (closh-op) (name "and"))
-(define-class op-or (closh-op) (name "or"))
-(define-class op-begin (closh-op) (name "begin"))
+;;object/closh-op/special
+(define-class closh-special (closh-op))
+(define-class closh-define (closh-special) (name "define"))
+(define-class closh-quote (closh-special) (name "quote"))
+(define-class closh-set! (closh-special) (name "set!"))
+(define-class closh-lambda (closh-special) (name "lambda"))
+(define-class closh-let (closh-special) (name "let"))
+(define-class closh-let* (closh-special) (name "let*"))
+(define-class closh-letrec (closh-special) (name "letrec"))
+(define-class closh-if (closh-special) (name "if"))
+(define-class closh-cond (closh-special) (name "cond"))
+(define-class closh-and (closh-special) (name "and"))
+(define-class closh-or (closh-special) (name "or"))
+(define-class closh-begin (closh-special) (name "begin"))
 
 ;;object/exit-signal
 (define-class exit-signal (closh-object))
@@ -62,7 +66,7 @@
 
 ;;///// base-impl /////
 (defmethod dump-to-str ((obj closh-object))
-  (class-name obj))
+  (format nil "#<~a>" (type-of obj)))
 
 (defmethod call-op ((obj closh-object) argv env)
   (declare (ignore argv env))

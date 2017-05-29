@@ -32,9 +32,11 @@
                               *global-enviroment*)))))
 
 (defun init-closh ()
-  (init-global define (make-instance 'op-define)
-               quote (make-instance 'op-quote)
-               set! (make-instance 'op-set!)
+  (init-global define (make-instance 'closh-define)
+               quote (make-instance 'closh-quote)
+               set! (make-instance 'closh-set!)
+               lambda (make-instance 'closh-lambda)
+               begin (make-instance 'closh-begin)
                exit (make-instance 'closh-builtin
                                    :func #'closh-exit)))
 

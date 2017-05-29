@@ -4,8 +4,8 @@
   (declare (ignore env)) const)
 (defmethod eval-closh-object ((sym closh-sym) (env closh-env))
   (get-env sym env))
-(defmethod eval-closh-object ((lst closh-list) (env closh-env))
-  (call-op (get-env (closh-car lst) env)
+(defmethod eval-closh-object ((lst closh-cons) (env closh-env))
+  (call-op (eval-closh-object (closh-car lst) env)
            (closh-cdr lst) env))
 
 (defun closh-eval (objects env &optional (ret nil))

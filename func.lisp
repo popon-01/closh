@@ -1,7 +1,6 @@
 (in-package :closh)
 
-(defgeneric call-func (func argv env))
-(defmethod call-func ((func closh-func) argv env)
+(defun call-func (func argv)
   (let ((newenv (make-instance 'closh-local
                                :parent (penv func))))
     (eval-closh-object (body func)
@@ -28,12 +27,12 @@
 
 
 ;;///// lambda /////
-(defmethod call-op ((func closh-lambda) (argv closh-list)
+(defmethod call-op ((func closh-func) (argv closh-list)
                     (env closh-env))
   (let ((argv-eval
          (closh-map (lambda (exp) (eval-closh-object exp env))
                     argv)))
-    (call-func func argv-eval env)))
+    (call-func func argv-eval)))
 
 ;;///// macros /////
 (defgeneric macro-callp (obj env))
@@ -49,7 +48,7 @@
   (if-not (macro-callp lst env)
           (values lst nil)
           (values (call-func (get-env (closh-car lst) env)
-                             (closh-cdr lst) env)
+                             (closh-cdr lst))
                   t)))
 
 (defgeneric closh-macroexpand (exp env))
@@ -58,5 +57,5 @@
     (if callp (closh-macroexpand ret env) ret)))
 
 (defmethod call-op ((macro-op closh-macro) argv env)
-  (closh-eval (call-func macro-op argv env) env))
+  (closh-eval (call-func macro-op argv) env))
 
