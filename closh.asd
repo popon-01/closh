@@ -5,6 +5,7 @@
   :components ((:file "package")
                (:file "util")
                (:file "object")
+               (:file "condition")
                (:file "listop")
                (:file "env")
                (:file "func")

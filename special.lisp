@@ -27,6 +27,27 @@
                         (make-instance 'closh-sym :sym :begin)
                         (closh-cdr argv))))
 
+(defmethod call-op ((op closh-or) (argv closh-cons)
+                    (env closh-env))
+  (funcall
+   (alambda (exps)
+     (if (closh-null exps)
+         (make-instance 'closh-bool :value nil)
+         (let ((val (eval-closh-object (closh-car exps) env)))
+           (if (to-bool val) val
+               (self (closh-cdr exps))))))
+   argv))
+
+(defmethod call-op ((op closh-and) (argv closh-cons)
+                    (env closh-env))
+  (funcall
+   (alambda (exps ret)
+     (if (closh-null exps) ret
+         (let ((val (eval-closh-object (closh-car exps) env)))
+           (if-not (to-bool val) val
+                   (self (closh-cdr exps) val)))))
+   argv (make-instance 'closh-bool :value t)))
+
 (defmethod call-op ((op closh-begin) (argv closh-cons)
                     (env closh-env))
   (funcall

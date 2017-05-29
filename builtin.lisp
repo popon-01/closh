@@ -8,4 +8,4 @@
 
 (defun closh-exit (&rest argv)
   (declare (ignore argv))
-  (make-instance 'exit-signal))
+  (signal 'closh-exit-signal))

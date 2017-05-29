@@ -14,13 +14,17 @@
   (format stream "~a~%" (dump-to-str obj)))
 
 (defun read-eval-print-loop ()
-  (let* ((line (raw-input "USER> "))
-         (res (closh-eval (closh-read line)
-                          *global-enviroment*)))
-    (unless (eq (type-of res) 'exit-signal)
-      (closh-print res)
-      (read-eval-print-loop))))
-
+  (block repl
+    (let ((line (raw-input "USER> ")))
+      (handler-bind
+          ((closh-exit-signal (lambda (c)
+                                (declare (ignore c))
+                                (format t "exit.~%")
+                                (return-from repl))))
+        (closh-print (closh-eval (closh-read line)
+                                 *global-enviroment*))
+        (read-eval-print-loop)))))
+  
 (defmacro init-global (&body key-and-values)
   `(progn
      (setf *global-enviroment* (make-instance 'closh-global))
@@ -36,6 +40,8 @@
                quote (make-instance 'closh-quote)
                set! (make-instance 'closh-set!)
                lambda (make-instance 'closh-lambda)
+               or (make-instance 'closh-or)
+               and (make-instance 'closh-and)
                begin (make-instance 'closh-begin)
                exit (make-instance 'closh-builtin
                                    :func #'closh-exit)))

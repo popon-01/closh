@@ -1,6 +1,7 @@
 (in-package :closh)
 
 (define-class closh-object ()
+  (closh-boolp nil)
   (closh-macrop nil)
   (closh-symbolp nil)
   (closh-null nil))
@@ -14,7 +15,7 @@
 ;;object/exp/const
 (define-class closh-const (closh-exp) value)
 (define-class closh-num (closh-const))
-(define-class closh-bool (closh-const))
+(define-class closh-bool (closh-const) (closh-boolp t))
 (define-class closh-str (closh-const))
 
 ;;object/exp/list
@@ -48,12 +49,13 @@
 (define-class closh-or (closh-special) (name "or"))
 (define-class closh-begin (closh-special) (name "begin"))
 
-;;object/exit-signal
-(define-class exit-signal (closh-object))
-
 ;; for object
 ;; convert to string
 (defgeneric dump-to-str (obj))
+
+;;for object
+;;object represents true?
+(defgeneric to-bool (obj))
 
 ;; for object
 ;; evaluate object in env
@@ -99,6 +101,9 @@
 (defmethod dump-to-str ((str closh-str))
   (format nil "\"~a\"" (value str)))
 
+;;///// to-bool /////
+(defmethod to-bool ((obj closh-object)) t)
+(defmethod to-bool ((b closh-bool)) (value b))
 
 
 
