@@ -3,7 +3,7 @@
 (defmethod call-op ((op closh-define) (argv closh-cons)
                     (env closh-env))
   (add-env (closh-car argv)
-           (eval-closh-object (closh-car (closh-cdr argv)) env)
+           (eval-closh-object (closh-nth 1 argv) env)
            env)
   (closh-car argv))
 
@@ -13,8 +13,7 @@
 
 (defmethod call-op ((op closh-set!) (argv closh-cons)
                     (env closh-env))
-  (let ((val (eval-closh-object
-              (closh-car (closh-cdr argv)) env)))
+  (let ((val (eval-closh-object (closh-nth 1 argv) env)))
     (update-env (closh-car argv) val env)
     val))
 
@@ -30,8 +29,7 @@
 (defmethod call-op ((op closh-let) (argv closh-cons)
                     (env closh-env))
   (let ((syms (closh-map #'closh-car (closh-car argv)))
-        (vals (closh-map (lambda (bind)
-                           (closh-car (closh-cdr bind)))
+        (vals (closh-map (lambda (bind) (closh-nth 1 bind))
                          (closh-car argv))))
     (eval-closh-object (make-closh-cons
                         (make-instance 'closh-sym :sym :begin)
@@ -51,8 +49,7 @@
 (defmethod call-op ((op closh-let*) (argv closh-cons)
                     (env closh-env))
   (let ((syms (closh-map #'closh-car (closh-car argv)))
-        (vals (closh-map (lambda (bind)
-                           (closh-car (closh-cdr bind)))
+        (vals (closh-map (lambda (bind) (closh-nth 1 bind))
                          (closh-car argv))))
     (eval-closh-object (make-closh-cons
                         (make-instance 'closh-sym :sym :begin)
@@ -71,6 +68,27 @@
                         syms vals
                         (make-instance 'closh-local :parent env)))))
 
+(defmethod call-op ((op closh-if) (argv closh-cons)
+                    (env closh-env))
+  (if (to-bool (eval-closh-object (closh-car argv) env))
+      (eval-closh-object (closh-nth 1 argv) env)
+      (eval-closh-object (closh-nth 2 argv) env)))
+
+(defmethod call-op ((op closh-cond) (argv closh-cons)
+                    (env closh-env))
+  (funcall
+   (alambda (clauses)
+     (cond ((closh-null clauses) (make-instance 'closh-nil))
+           ((or (and (closh-symbolp (closh-car (closh-car clauses)))
+                     (eq (sym (closh-car (closh-car clauses))) :else))
+                (to-bool (eval-closh-object
+                          (closh-car (closh-car clauses)) env)))                
+            (eval-closh-object (make-closh-cons
+                                (make-instance 'closh-sym :sym :begin)
+                                (closh-cdr (closh-car clauses)))
+                               env))
+           (t (self (closh-cdr clauses)))))
+   argv))
 
 (defmethod call-op ((op closh-or) (argv closh-cons)
                     (env closh-env))

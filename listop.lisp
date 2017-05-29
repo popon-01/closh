@@ -52,6 +52,14 @@
                                 acc))))
    lst (make-instance 'closh-nil)))
 
+(defgeneric closh-nth (n lst))
+(defmethod closh-nth (n (lst closh-list))
+  (if (zerop n)
+      (closh-car lst)
+      (closh-nth (1- n) (closh-cdr lst))))
+(defmethod closh-nth (n (cnil closh-nil))
+  cnil)
+
 (defgeneric revert-closh-list (lst))
 (defmethod revert-closh-list ((obj closh-object))
   obj)

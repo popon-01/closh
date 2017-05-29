@@ -42,6 +42,8 @@
                lambda (make-instance 'closh-lambda)
                let (make-instance 'closh-let)
                let* (make-instance 'closh-let*)
+               if (make-instance 'closh-if)
+               cond (make-instance 'closh-cond)
                or (make-instance 'closh-or)
                and (make-instance 'closh-and)
                begin (make-instance 'closh-begin)
