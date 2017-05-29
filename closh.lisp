@@ -13,13 +13,13 @@
 (defun closh-print (obj &optional (stream t))
   (format stream "~a~%" (dump-to-str obj)))
 
-(defun read-eval-print ()
-  (let ((line (raw-input "USER> ")))
-    (when (string/= line "(quit)")
-      (closh-print (closh-eval (closh-read line)
-                               *global-enviroment*))
-      t)))
-
+(defun read-eval-print-loop ()
+  (let* ((line (raw-input "USER> "))
+         (res (closh-eval (closh-read line)
+                          *global-enviroment*)))
+    (unless (eq (type-of res) 'exit-signal)
+      (closh-print res)
+      (read-eval-print-loop))))
 
 (defmacro init-global (&body key-and-values)
   `(progn
@@ -32,10 +32,13 @@
                               *global-enviroment*)))))
 
 (defun init-closh ()
-  (init-global quote (make-instance 'op-quote)))
+  (init-global define (make-instance 'op-define)
+               quote (make-instance 'op-quote)
+               set! (make-instance 'op-set!)
+               exit (make-instance 'closh-builtin
+                                   :func #'closh-exit)))
 
 (defun closh-repl ()
   (init-closh)
-  (when (read-eval-print)
-    (closh-repl)))
+  (read-eval-print-loop))
 

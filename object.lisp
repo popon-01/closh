@@ -26,18 +26,26 @@
 ;;object/closh-op
 (define-class closh-op (closh-object) (name "unknown"))
 
+;;object/closh-op/builtin
+(define-class closh-builtin (closh-op) func)
+
 ;;object/closh-op/func
 (define-class closh-func (closh-op) penv args body)
 (define-class closh-macro (closh-func) (closh-macrop t))
 (define-class closh-lambda (closh-func))
 
 ;;object/closh-op special forms
-(define-class op-lambda (closh-op))
-(define-class op-quote (closh-op))
-(define-class op-cond (closh-op))
-(define-class op-and (closh-op))
-(define-class op-or (closh-op))
-(define-class op-begin (closh-op))
+(define-class op-define (closh-op) (name "define"))
+(define-class op-quote (closh-op) (name "quote"))
+(define-class op-set! (closh-op) (name "set!"))
+(define-class op-lambda (closh-op) (name "lambda"))
+(define-class op-cond (closh-op) (name "cond"))
+(define-class op-and (closh-op) (name "and"))
+(define-class op-or (closh-op) (name "or"))
+(define-class op-begin (closh-op) (name "begin"))
+
+;;object/exit-signal
+(define-class exit-signal (closh-object))
 
 ;; for object
 ;; convert to string

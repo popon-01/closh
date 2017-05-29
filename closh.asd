@@ -9,6 +9,7 @@
                (:file "env")
                (:file "func")
                (:file "special")
+               (:file "builtin")
                (:file "read")
                (:file "eval")
                (:file "closh"))
