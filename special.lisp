@@ -28,45 +28,38 @@
 
 (defmethod call-op ((op closh-let) (argv closh-cons)
                     (env closh-env))
-  (let ((syms (closh-map #'closh-car (closh-car argv)))
+  (let ((args (closh-map #'closh-car (closh-car argv)))
         (vals (closh-map (lambda (bind) (closh-nth 1 bind))
                          (closh-car argv))))
-    (eval-closh-object (make-closh-cons
-                        (make-instance 'closh-sym :sym :begin)
-                        (closh-cdr argv))
-                       (funcall
-                        (alambda (syms vals local)
-                          (if (closh-null syms) local
-                              (let ((val (eval-closh-object
-                                          (closh-car vals) env)))
-                                (self (closh-cdr syms)
-                                      (closh-cdr vals)
-                                      (add-env (closh-car syms) val
-                                               local)))))
-                        syms vals
-                        (make-instance 'closh-local :parent env)))))
+    (call-op (make-instance 'closh-func
+                            :penv env :args args
+                            :body (make-closh-cons
+                                   (make-instance 'closh-sym
+                                                  :sym :begin)
+                                   (closh-cdr argv)))
+             vals env)))
 
 (defmethod call-op ((op closh-let*) (argv closh-cons)
                     (env closh-env))
-  (let ((syms (closh-map #'closh-car (closh-car argv)))
-        (vals (closh-map (lambda (bind) (closh-nth 1 bind))
-                         (closh-car argv))))
-    (eval-closh-object (make-closh-cons
-                        (make-instance 'closh-sym :sym :begin)
-                        (closh-cdr argv))
-                       (funcall
-                        (alambda (syms vals local)
-                          (if (closh-null syms) local
-                              (let* ((newenv (make-instance 'closh-local
-                                                            :parent env))
-                                     (val (eval-closh-object
-                                           (closh-car vals) local)))
-                                (self (closh-cdr syms)
-                                      (closh-cdr vals)
-                                      (add-env (closh-car syms) val
-                                                newenv)))))
-                        syms vals
-                        (make-instance 'closh-local :parent env)))))
+  (let ((binds (closh-car argv))
+        (body (closh-cdr argv)))
+    (if (closh-null binds)
+        (call-op (make-instance 'closh-func
+                                :penv env :args cnil
+                                :body (make-closh-cons
+                                       (make-instance 'closh-sym
+                                                      :sym :begin)
+                                       (closh-cdr argv)))
+                 cnil env)
+        (call-op (make-instance 'closh-func
+                                :penv env
+                                :args (make-closh-list
+                                       (closh-nth 0 (closh-car binds)))
+                                :body (make-closh-cons
+                                       (make-instance 'closh-sym :sym :let*)
+                                       (make-closh-cons
+                                        (closh-cdr binds) body)))
+                 (make-closh-list (closh-nth 1 (closh-car binds))) env))))
 
 (defmethod call-op ((op closh-if) (argv closh-cons)
                     (env closh-env))
@@ -78,7 +71,7 @@
                     (env closh-env))
   (funcall
    (alambda (clauses)
-     (cond ((closh-null clauses) (make-instance 'closh-nil))
+     (cond ((closh-null clauses) make-cnil)
            ((or (and (closh-symbolp (closh-car (closh-car clauses)))
                      (eq (sym (closh-car (closh-car clauses))) :else))
                 (to-bool (eval-closh-object
@@ -118,7 +111,7 @@
      (if (closh-null exps)
          ret (self (closh-cdr exps)
                    (eval-closh-object (closh-car exps) env))))
-   argv (make-instance 'closh-nil)))
+   argv cnil))
 
 
   

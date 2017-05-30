@@ -10,8 +10,7 @@
 
 (defun closh-eval (objects env &optional (ret nil))
   (if (null objects) ret
-      (progn
-        (let ((eval-car
-               (eval-closh-object (car objects) env)))
-          (closh-eval (cdr objects) env eval-car)))))
+      (let ((eval-car
+             (eval-closh-object (car objects) env)))
+        (closh-eval (cdr objects) env eval-car))))
 

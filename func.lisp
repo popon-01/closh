@@ -19,9 +19,9 @@
 (defmethod bind-args ((sym closh-sym) (val closh-list)
                       (env closh-env))
   (add-env sym val env))
-(defmethod bind-args ((cnil closh-nil) (argv closh-list)
+(defmethod bind-args ((empty closh-nil) (argv closh-list)
                       (env closh-env))
-  (declare (ignore cnil))
+  (declare (ignore empty))
   (if-not (closh-null argv)
           (error "invalid number of arguments") env))
 

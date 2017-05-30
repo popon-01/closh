@@ -1,10 +1,15 @@
 (in-package :closh)
 
 (define-class closh-object ()
-  (closh-boolp nil)
-  (closh-macrop nil)
+  (closh-numberp nil)
+  (closh-pairp nil)
+  (closh-null nil)
+  (closh-listp nil)
   (closh-symbolp nil)
-  (closh-null nil))
+  (closh-boolp nil)
+  (closh-strp nil)
+  (closh-procp nil)
+  (closh-macrop nil))
 
 ;;object/exp
 (define-class closh-exp (closh-object))
@@ -14,25 +19,27 @@
 
 ;;object/exp/const
 (define-class closh-const (closh-exp) value)
-(define-class closh-num (closh-const))
+(define-class closh-num (closh-const) (closh-numberp t))
 (define-class closh-bool (closh-const) (closh-boolp t))
-(define-class closh-str (closh-const))
+(define-class closh-str (closh-const) (closh-strp t))
 
 ;;object/exp/list
-(define-class closh-list (closh-exp))
+(define-class closh-list (closh-exp) (closh-listp t))
 (define-class closh-nil (closh-list)
   (closh-null t) (value nil))
-(define-class closh-cons (closh-list) closh-car closh-cdr)
+(define-class closh-cons (closh-list)
+  (closh-pairp t) closh-car closh-cdr)
 
 ;;object/closh-op
 (define-class closh-op (closh-object) (name "unknown"))
 
-;;object/closh-op/
-(define-class closh-func (closh-op)
+;;object/closh-op/procedure
+(define-class closh-procedure (closh-op) (closh-procp t))
+(define-class closh-func (closh-procedure)
   penv args body)
-(define-class closh-macro (closh-op)
+(define-class closh-macro (closh-procedure)
   penv args body (closh-macrop t))
-(define-class closh-builtin (closh-op) func)
+(define-class closh-builtin (closh-procedure) func)
 
 ;;object/closh-op/special
 (define-class closh-special (closh-op))
@@ -81,7 +88,7 @@
   (format nil "~a" (sym sym)))
 
 ;;object/exp/list
-(defmethod dump-to-str ((cnil closh-nil))
+(defmethod dump-to-str ((lst closh-nil))
   (format nil "()"))
 (defmethod dump-to-str ((lst closh-cons))
   (let ((car-str (dump-to-str (closh-car lst)))

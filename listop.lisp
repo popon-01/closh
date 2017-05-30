@@ -1,8 +1,11 @@
 (in-package :closh)
 
+(define-symbol-macro cnil
+    (make-instance 'closh-nil))
+
 (defgeneric make-closh-cons (car-value cdr-value))
-(defmethod make-closh-cons ((car-value closh-exp)
-                            (cdr-value closh-exp))
+(defmethod make-closh-cons ((car-value closh-object)
+                            (cdr-value closh-object))
   (make-instance 'closh-cons
                  :closh-car car-value
                  :closh-cdr cdr-value))
@@ -50,20 +53,20 @@
          (self (closh-cdr lst)
                (make-closh-cons (funcall func (closh-car lst))
                                 acc))))
-   lst (make-instance 'closh-nil)))
+   lst cnil))
 
 (defgeneric closh-nth (n lst))
 (defmethod closh-nth (n (lst closh-list))
   (if (zerop n)
       (closh-car lst)
       (closh-nth (1- n) (closh-cdr lst))))
-(defmethod closh-nth (n (cnil closh-nil))
-  cnil)
+(defmethod closh-nth (n (lst closh-nil))
+  lst)
 
 (defgeneric revert-closh-list (lst))
 (defmethod revert-closh-list ((obj closh-object))
   obj)
-(defmethod revert-closh-list ((cnil closh-nil))
+(defmethod revert-closh-list ((lst closh-nil))
   nil)
 (defmethod revert-closh-list ((lst closh-cons))
   (cons (revert-closh-list (closh-car lst))
