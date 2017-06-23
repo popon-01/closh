@@ -84,7 +84,7 @@
 
 (defmethod call-op ((obj closh-object) argv env)
   (declare (ignore argv env))
-  (error "illeagal function call : ~a" (dump-to-str obj)))
+  (error 'closh-funcall-error :callform (dump-to-str obj)))
 
 
 ;;///// dump-to-str /////
