@@ -10,7 +10,7 @@
 (defmethod call-op ((op closh-builtin) (argv closh-list)
                     (env closh-env))
   (apply (func op) (mapcar (lambda (exp) (eval-closh-object exp env))
-                             (cl-arglist argv))))
+                           (cl-arglist argv))))
 
 (defun closh-exit (&rest argv)
   (declare (ignore argv))
@@ -82,3 +82,4 @@
   (make-instance 'closh-bool :value (string= (value arg1) (value arg2))))
 (defmethod closh-equal? ((arg1 closh-num) (arg2 closh-num))
   (make-instance 'closh-num :value (= (value arg1) (value arg2))))
+

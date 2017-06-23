@@ -56,6 +56,7 @@
   (multiple-value-bind (ret callp) (closh-macroexpand-1 exp env)
     (if callp (closh-macroexpand ret env) ret)))
 
-(defmethod call-op ((macro-op closh-macro) argv env)
-  (closh-eval (call-func macro-op argv) env))
+(defmethod call-op ((macro-op closh-macro) (argv closh-list)
+                    (env closh-env))
+  (eval-closh-object (call-func macro-op argv) env))
 

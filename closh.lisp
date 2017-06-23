@@ -44,6 +44,7 @@
 
 (defun add-special ()
   (add-global define (make-instance 'closh-define)
+              defmacro (make-instance 'closh-defmacro)
               quote (make-instance 'closh-quote)
               set! (make-instance 'closh-set!)
               lambda (make-instance 'closh-lambda)

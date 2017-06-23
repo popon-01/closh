@@ -44,6 +44,7 @@
 ;;object/closh-op/special
 (define-class closh-special (closh-op))
 (define-class closh-define (closh-special) (name "define"))
+(define-class closh-defmacro (closh-special) (name "defmacro"))
 (define-class closh-quote (closh-special) (name "quote"))
 (define-class closh-set! (closh-special) (name "set!"))
 (define-class closh-lambda (closh-special) (name "lambda"))

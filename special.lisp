@@ -26,6 +26,18 @@
            env)
   (closh-car (closh-nth 0 argv)))
 
+
+;;defmacro
+(defmethod call-op ((op closh-defmacro) (argv closh-cons)
+                    (env closh-env))
+  (add-env (closh-car (closh-nth 0 argv))
+           (make-instance 'closh-macro
+                          :penv env
+                          :args (closh-cdr (closh-nth 0 argv))
+                          :body (make-body (closh-cdr argv)))
+           env)
+  (closh-car (closh-nth 0 argv)))
+
 ;;quote
 (defmethod call-op ((op closh-quote) (argv closh-cons)
                     (env closh-env))
