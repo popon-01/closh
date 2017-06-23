@@ -1,43 +1,84 @@
 (in-package :closh)
 
+(defgeneric cl-arglist (lst))
+(defmethod cl-arglist ((lst closh-nil))
+  nil)
+(defmethod cl-arglist ((lst closh-cons))
+  (cons (closh-car lst)
+        (cl-arglist (closh-cdr lst))))
+
 (defmethod call-op ((op closh-builtin) (argv closh-list)
                     (env closh-env))
-  (apply (func op) (revert-closh-list
-                    (closh-map (lambda (exp) (eval-closh-object exp env))
-                               argv))))
+  (apply (func op) (mapcar (lambda (exp) (eval-closh-object exp env))
+                             (cl-arglist argv))))
 
 (defun closh-exit (&rest argv)
   (declare (ignore argv))
   (signal 'closh-exit-signal))
 
-(defun closh-number? (obj)
-  (make-instance 'closh-bool
-                 :value (closh-numberp obj)))
+(defun closh-type-pred (pred)
+  (lambda (obj)
+    (make-instance 'closh-bool
+                   :value (funcall pred obj))))
 
-(defun closh-null? (obj)
-  (make-instance 'closh-bool
-                 :value (closh-null obj)))
+(defun closh-num-op (op return-type)
+  (lambda (&rest argv)
+    (let ((argnum (mapcar #'value argv)))
+      (make-instance return-type
+                     :value (apply op argnum)))))
 
-(defun closh-pair? (obj)
-  (make-instance 'closh-bool
-                 :value (closh-pairp obj)))
+(defun closh-num-calc (op)
+  (closh-num-op op 'closh-num))
 
-(defun closh-list? (obj)
-  (make-instance 'closh-bool
-                 :value (closh-listp obj)))
+(defun closh-num-pred (op)
+  (closh-num-op op 'closh-bool))
 
-(defun closh-symbol? (obj)
+(defun closh-not (arg)
   (make-instance 'closh-bool
-                 :value (closh-symbolp obj)))
+                 :value (not (to-bool arg))))
 
-(defun closh-boolean? (obj)
-  (make-instance 'closh-bool
-                 :value (closh-boolp obj)))
+(defun closh-string-append (&rest argv)
+  (let ((argstr (mapcar #'value argv)))
+    (make-instance 'closh-str
+                   :value (apply #'concatenate
+                                 'string argstr))))
 
-(defun closh-string? (obj)
-  (make-instance 'closh-bool
-                 :value (closh-strp obj)))
+(defun closh-symbol->string (arg)
+  (make-instance 'closh-str
+                 :value (symbol-name (sym arg))))
+(defun closh-string->symbol (arg)
+  (make-instance 'closh-sym
+                 :sym (intern (string-upcase (value arg)) :keyword)))
+(defun closh-number->string (arg)
+  (make-instance 'closh-str
+                 :value (princ-to-string (value arg))))
+(defun closh-string->number (arg)
+  (make-instance 'closh-num
+                 :value (read-from-string (value arg))))
 
-(defun closh-procedure? (obj)
+(defgeneric closh-eq? (arg1 arg2))
+(defmethod closh-eq? ((arg1 closh-object) (arg2 closh-object))
+  (make-instance 'closh-bool :value nil))
+(defmethod closh-eq? ((arg1 closh-const) (arg2 closh-const))
+  (make-instance 'closh-bool :value (eq (value arg1) (value arg2))))
+(defmethod closh-eq? ((arg1 closh-nil) (arg2 closh-nil))
+  (make-instance 'closh-bool :value t))
+(defmethod closh-eq? ((arg1 closh-sym) (arg2 closh-sym))
+  (make-instance 'closh-bool :value (eq (sym arg1) (sym arg2))))
+
+(defun closh-neq? (arg1 arg2)
+  (closh-not (closh-eq? arg1 arg2)))
+
+(defgeneric closh-equal? (arg1 arg2))
+(defmethod closh-equal? ((arg1 closh-object) (arg2 closh-object))
+  (closh-eq? arg1 arg2))
+(defmethod closh-equal? ((arg1 closh-cons) (arg2 closh-cons))
   (make-instance 'closh-bool
-                 :value (closh-procp obj)))
+                 :value (and (value (closh-equal? (closh-car arg1)
+                                                  (closh-car arg2)))
+                             (value (closh-equal? (closh-cdr arg1)
+                                                  (closh-cdr arg2))))))
+(defmethod closh-equal? ((arg1 closh-str) (arg2 closh-str))
+  (make-instance 'closh-bool :value (string= (value arg1) (value arg2))))
+(defmethod closh-equal? ((arg1 closh-num) (arg2 closh-num))
+  (make-instance 'closh-num :value (= (value arg1) (value arg2))))

@@ -49,6 +49,7 @@
               lambda (make-instance 'closh-lambda)
               let (make-instance 'closh-let)
               let* (make-instance 'closh-let*)
+              letrec (make-instance 'closh-letrec)
               if (make-instance 'closh-if)
               cond (make-instance 'closh-cond)
               or (make-instance 'closh-or)
@@ -57,19 +58,51 @@
 
 
 (defun add-number-func ()
-  (add-global-builtin number?  #'closh-number?))
+  (add-global-builtin number? (closh-type-pred #'closh-numberp)
+                      + (closh-num-calc #'+)
+                      - (closh-num-calc #'-)
+                      * (closh-num-calc #'*)
+                      / (closh-num-calc #'/)
+                      = (closh-num-pred #'=)
+                      < (closh-num-pred #'<)
+                      <= (closh-num-pred #'<=)
+                      > (closh-num-pred #'>)
+                      >= (closh-num-pred #'>=)))
 
 (defun add-list-func ()
-  (add-global-builtin null? #'closh-null?
-                      pair? #'closh-pair?
-                      list? #'closh-list?
-                      symbol #'closh-symbol?))
+  (add-global-builtin null? (closh-type-pred #'closh-null)
+                      pair? (closh-type-pred #'closh-pairp)
+                      list? (closh-type-pred #'closh-listp)
+                      symbol? (closh-type-pred #'closh-symbolp)
+                      car #'closh-car
+                      cdr #'closh-cdr
+                      cons #'make-closh-cons
+                      list #'make-closh-list
+                      length (lambda (arg)
+                               (make-instance 'closh-num
+                                              :value (closh-length arg)))
+                      memq #'closh-memq
+                      last #'closh-last
+                      append #'closh-append
+                      set-car! #'closh-set-car!
+                      set-cdr! #'closh-set-cdr!))
 
 (defun add-bool-func ()
-  (add-global-builtin boolean? #'closh-boolean?))
+  (add-global-builtin boolean? (closh-type-pred #'closh-boolp)
+                      not #'closh-not))
 
 (defun add-str-func ()
-  (add-global-builtin string? #'closh-string?))
+  (add-global-builtin string? (closh-type-pred #'closh-strp)
+                      string-append #'closh-string-append
+                      symbol->string #'closh-symbol->string
+                      string->symbol #'closh-string->symbol
+                      number->string #'closh-number->string
+                      string->number #'closh-string->number))
+
+(defun add-comp-func ()
+  (add-global-builtin eq? #'closh-eq?
+                      neq? #'closh-neq?
+                      equal? #'closh-equal?))
 
 (defun init-closh ()
   (setf *global-enviroment* (make-instance 'closh-global))
@@ -78,8 +111,9 @@
   (add-list-func)
   (add-bool-func)
   (add-str-func)
+  (add-comp-func)
   (add-global-builtin exit #'closh-exit
-                      procedure? #'closh-procedure?))
+                      procedure? (closh-type-pred #'closh-procp)))
 
 (defun closh-repl ()
   (init-closh)

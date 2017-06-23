@@ -8,7 +8,8 @@
   ("'"      (return (values 'quote 'quote)))
   ("#f"     (return (values 'bool nil)))
   ("#t"     (return (values 'bool t)))
-  ("\"([^\\\"]|\\.)*?\"" (return (values 'string (string-trim "\"" $@))))
+  ("\"([^\\\\\"]|\\\\.)*?\"" (return (values 'string
+                                             (subseq $@ 1 (1- (length $@))))))
   ("[0-9A-Za-z!$%&*+-./<=>?@^_]+"
    (if (scan-to-strings "^-?(0|[1-9][0-9]*(\\.[0-9]*)?)$" $@)
        (return (values 'num (read-from-string $@)))

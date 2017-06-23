@@ -55,6 +55,10 @@
 (define-class closh-and (closh-special) (name "and"))
 (define-class closh-or (closh-special) (name "or"))
 (define-class closh-begin (closh-special) (name "begin"))
+(define-class closh-do (closh-special) (name "do"))
+
+;;object
+(define-class closh-undef (closh-object))
 
 ;; for object
 ;; convert to string
