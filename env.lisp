@@ -20,7 +20,8 @@
 
 (defmethod get-env ((sym closh-sym) (env closh-global))
   (multiple-value-bind (val foundp) (gethash (sym sym) (table env))
-    (if foundp val (error "symbol ~a is unbound." (symbol-name (sym sym))))))
+    (if foundp val (error 'closh-unbound-error
+                          :symname (symbol-name (sym sym))))))
 
 (defmethod get-env ((sym closh-sym) (env closh-local))
   (multiple-value-bind (val foundp) (gethash (sym sym) (table env))
@@ -33,7 +34,7 @@
     (declare (ignore old))
     (if foundp
         (progn (setf (gethash (sym sym) (table env)) value) env)
-        (error "symbol ~a is unbound." (symbol-name (sym sym))))))
+        (error 'closh-unbound-error :symname (symbol-name (sym sym))))))
 
 (defmethod update-env ((sym closh-sym) (value closh-object)
                          (env closh-local))

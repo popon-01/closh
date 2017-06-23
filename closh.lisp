@@ -14,16 +14,18 @@
   (format stream "~a~%" (dump-to-str obj)))
 
 (defun read-eval-print-loop ()
-  (block repl
+  (block outer-repl
     (let ((line (raw-input "USER> ")))
-      (handler-bind
-          ((closh-exit-signal (lambda (c)
-                                (declare (ignore c))
-                                (format t "exit.~%")
-                                (return-from repl))))
-        (closh-print (closh-eval (closh-read line)
-                                 *global-enviroment*))
-        (read-eval-print-loop)))))
+      (block inner-repl
+        (handler-bind ((closh-exit-signal
+                        (lambda (c) (declare (ignore c)) (format t "exit.~%")
+                                (return-from outer-repl)))
+                       (closh-error
+                        (lambda (c) (handle-error c)
+                                (return-from inner-repl))))
+          (closh-print (closh-eval (closh-read line)
+                                   *global-enviroment*)))))
+      (read-eval-print-loop)))
   
 (defmacro add-global (&body key-and-values)
   `(progn
