@@ -129,7 +129,7 @@
                     (env closh-env))
   (funcall
    (alambda (clauses)
-     (cond ((closh-null clauses) make-cnil)
+     (cond ((closh-null clauses) cnil)
            ((or (and (closh-symbolp (closh-car (closh-car clauses)))
                      (eq (sym (closh-car (closh-car clauses))) :else))
                 (to-bool (eval-closh-object

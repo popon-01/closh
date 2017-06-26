@@ -48,7 +48,7 @@
   (if-not (macro-callp lst env)
           (values lst nil)
           (values (call-func (get-env (closh-car lst) env)
-                             (closh-cdr lst))　
+                             (closh-cdr lst))
                              t)))
 
 (defgeneric closh-macroexpand (exp env))

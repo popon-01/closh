@@ -18,8 +18,14 @@
     (let ((line (raw-input "USER> ")))
       (block inner-repl
         (handler-bind ((closh-exit-signal
-                        (lambda (c) (declare (ignore c)) (format t "exit.~%")
+                        (lambda (c) (declare (ignore c))
+                                (format t "exit.~%") (force-output)
                                 (return-from outer-repl)))
+                       (yacc-parse-error
+                        (lambda (c) (declare (ignore c))
+                                (format t "[closh-error] invalid syntax.~%")
+                                (force-output)
+                                (return-from inner-repl)))
                        (closh-error
                         (lambda (c) (handle-error c)
                                 (return-from inner-repl))))
