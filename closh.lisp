@@ -23,7 +23,8 @@
                                 (return-from outer-repl)))
                        (yacc-parse-error
                         (lambda (c) (declare (ignore c))
-                                (format t "[closh-error] invalid syntax.~%")
+                                (format t "[closh-error] parse failed : ~a~%"
+                                        line)
                                 (force-output)
                                 (return-from inner-repl)))
                        (closh-error

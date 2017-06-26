@@ -9,8 +9,14 @@
 
 (defmethod call-op ((op closh-builtin) (argv closh-list)
                     (env closh-env))
-  (apply (func op) (mapcar (lambda (exp) (eval-closh-object exp env))
-                           (cl-arglist argv))))
+  (handler-bind ((type-error
+                  (lambda (c) (declare (ignore c))
+                          (error 'closh-type-error)))
+                 (simple-error
+                  (lambda (c) (declare (ignore c))
+                          (error 'closh-type-error))))
+    (apply (func op) (mapcar (lambda (exp) (eval-closh-object exp env))
+                             (cl-arglist argv)))))
 
 (defun closh-exit (&rest argv)
   (declare (ignore argv))
