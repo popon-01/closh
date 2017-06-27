@@ -22,8 +22,8 @@
                       bool string sym num))
 
   (closh (exp closh (lambda (exp closh)
-                      (cons exp closh)))
-         (exp (lambda (exp) (list exp))))
+                      (make-closh-cons exp closh)))
+         (exp (lambda (exp) (make-closh-list exp))))
 
   (exp (num (lambda (num)
               (make-instance 'closh-num :value num)))
@@ -50,6 +50,30 @@
                 (exp period exp (lambda (exp1 p exp2)
                                   (declare (ignore p))
                                   (make-closh-cons exp1 exp2)))))
+
+(defun closh-file-lexer (path)
+  (let ((in (open path)) (clexer nil) (endp nil))
+    (alambda ()
+      (cond (endp nil)
+            (clexer
+             (multiple-value-bind (tag val) (funcall clexer)
+               (if tag (values tag val)
+                   (progn (setf clexer nil) (self)))))
+            (t (aif (read-line in nil nil)
+                    (progn (setf clexer (closh-lexer it)) (self))
+                    (progn (setf endp t) (close in) (self))))))))
+
+(defun closh-load (str)
+    (closh-eval-object
+     (make-body
+      (parse-with-lexer (closh-file-lexer (value str))
+                        closh-parser))
+     *global-enviroment*)
+    str)
+
+(defun closh-read (str)
+  (parse-with-lexer (closh-lexer str) closh-parser))
+
 
 (defun lex-test (str)
   (funcall (alambda (lex)

@@ -1,17 +1,9 @@
 (in-package :closh)
 
-(defvar *global-enviroment*)
-
 (defun raw-input (prompt)
   (format *standard-output* prompt)
   (force-output)
   (read-line *standard-input*))
-
-(defun closh-read (str)
-  (parse-with-lexer (closh-lexer str) closh-parser))
-
-(defun closh-print (obj &optional (stream t))
-  (format stream "~a~%" (dump-to-str obj)))
 
 (defun read-eval-print-loop ()
   (block outer-repl
@@ -27,12 +19,9 @@
                                         line)
                                 (force-output)
                                 (return-from inner-repl)))
-#|
                        (closh-error
                         (lambda (c) (handle-error c)
-                                (return-from inner-repl)))
-|#
-                       )
+                                (return-from inner-repl))))
           (closh-print (closh-eval (closh-read line)
                                    *global-enviroment*)))))
       (read-eval-print-loop)))
@@ -118,6 +107,14 @@
                       neq? #'closh-neq?
                       equal? #'closh-equal?))
 
+(defun add-other-func ()
+  (add-global-builtin exit #'closh-exit
+                      procedure? (closh-type-pred #'closh-procp)
+                      read (lambda (str)
+                             (closh-car (closh-read (value str))))
+                      load #'closh-load
+                      write #'closh-print))
+
 (defun init-closh ()
   (setf *global-enviroment* (make-instance 'closh-global))
   (add-special)
@@ -126,8 +123,7 @@
   (add-bool-func)
   (add-str-func)
   (add-comp-func)
-  (add-global-builtin exit #'closh-exit
-                      procedure? (closh-type-pred #'closh-procp)))
+  (add-other-func))
 
 (defun closh-repl ()
   (init-closh)

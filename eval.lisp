@@ -12,8 +12,8 @@
   (closh-map (lambda (x) (closh-eval-object x env)) lst))
 
 (defun closh-eval (objects env &optional (ret nil))
-  (if (null objects) ret
+  (if (closh-null objects) ret
       (let ((eval-car
-             (closh-eval-object (car objects) env)))
-        (closh-eval (cdr objects) env eval-car))))
+             (closh-eval-object (closh-car objects) env)))
+        (closh-eval (closh-cdr objects) env eval-car))))
 

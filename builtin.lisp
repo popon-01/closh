@@ -88,3 +88,5 @@
 (defmethod closh-equal? ((arg1 closh-num) (arg2 closh-num))
   (make-instance 'closh-num :value (= (value arg1) (value arg2))))
 
+(defun closh-print (obj &optional (stream t))
+  (format stream "~a~%" (dump-to-str obj)) obj)

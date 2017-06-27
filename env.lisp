@@ -1,5 +1,7 @@
 (in-package :closh)
 
+(defvar *global-enviroment*)
+
 (define-class closh-env () (table (make-hash-table)))
 (define-class closh-global (closh-env))
 (define-class closh-local (closh-env) parent)
