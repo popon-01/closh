@@ -3,7 +3,7 @@
 (defun call-func (func argv)
   (let ((newenv (make-instance 'closh-local
                                :parent (penv func))))
-    (eval-closh-object (body func)
+    (closh-eval-object (body func)
                        (bind-args (args func) argv newenv))))
 
 (defgeneric bind-args (sym argv env))
@@ -29,10 +29,7 @@
 ;;///// lambda /////
 (defmethod call-op ((func closh-func) (argv closh-list)
                     (env closh-env))
-  (let ((argv-eval
-         (closh-map (lambda (exp) (eval-closh-object exp env))
-                    argv)))
-    (call-func func argv-eval)))
+  (call-func func (closh-eval-all argv env)))
 
 ;;///// macros /////
 (defgeneric macro-callp (obj env))
@@ -58,5 +55,5 @@
 
 (defmethod call-op ((macro-op closh-macro) (argv closh-list)
                     (env closh-env))
-  (eval-closh-object (call-func macro-op argv) env))
+  (closh-eval-object (call-func macro-op argv) env))
 

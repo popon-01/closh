@@ -71,7 +71,11 @@
 
 ;; for object
 ;; evaluate object in env
-(defgeneric eval-closh-object (obj env))
+(defgeneric closh-eval-object (obj env))
+
+;; for closh-list
+;; evaluate each elements in lst in env
+(defgeneric closh-eval-all (lst env))
 
 ;; for object/closh-op
 ;; call operation with argv(S-exp) in env

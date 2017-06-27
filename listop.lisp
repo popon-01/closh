@@ -83,3 +83,15 @@
       (closh-nth (1- n) (closh-cdr lst))))
 (defmethod closh-nth (n (lst closh-nil))
   lst)
+
+(defgeneric closh-nth-all (n lists))
+(defmethod closh-nth-all (n lists)
+  (closh-map (lambda (lst) (closh-nth n lst))
+             lists))
+
+(defgeneric closh-nthcdr (n lst))
+(defmethod closh-nthcdr (n (lst closh-list))
+  (if (zerop n)
+      lst (closh-nthcdr (1- n) (closh-cdr lst))))
+(defmethod closh-nthcdr (n (lst closh-nil))
+  lst)

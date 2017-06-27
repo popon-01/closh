@@ -5,7 +5,7 @@
    (make-instance 'closh-sym :sym :begin) body))
 
 ;;define
-(defmethod call-op ((op closh-define) (argv closh-cons)
+(defmethod call-op ((op closh-define) (argv closh-list)
                     (env closh-env))
   (if (closh-listp (closh-car argv))
       (call-define-func argv env)
@@ -13,7 +13,7 @@
 
 (defun call-define-var (argv env)
   (add-env (closh-car argv)
-           (eval-closh-object (closh-nth 1 argv) env)
+           (closh-eval-object (closh-nth 1 argv) env)
            env)
   (closh-car argv))
 
@@ -28,7 +28,7 @@
 
 
 ;;defmacro
-(defmethod call-op ((op closh-defmacro) (argv closh-cons)
+(defmethod call-op ((op closh-defmacro) (argv closh-list)
                     (env closh-env))
   (add-env (closh-car (closh-nth 0 argv))
            (make-instance 'closh-macro
@@ -39,19 +39,19 @@
   (closh-car (closh-nth 0 argv)))
 
 ;;quote
-(defmethod call-op ((op closh-quote) (argv closh-cons)
+(defmethod call-op ((op closh-quote) (argv closh-list)
                     (env closh-env))
   (closh-car argv))
 
 ;;set!
-(defmethod call-op ((op closh-set!) (argv closh-cons)
+(defmethod call-op ((op closh-set!) (argv closh-list)
                     (env closh-env))
-  (let ((val (eval-closh-object (closh-nth 1 argv) env)))
+  (let ((val (closh-eval-object (closh-nth 1 argv) env)))
     (update-env (closh-car argv) val env)
     val))
 
 ;lambda
-(defmethod call-op ((op closh-lambda) (argv closh-cons)
+(defmethod call-op ((op closh-lambda) (argv closh-list)
                     (env closh-env))
   (make-instance 'closh-func
                  :penv env
@@ -59,17 +59,15 @@
                  :body (make-body (closh-cdr argv))))
 
 ;;let
-(defmethod call-op ((op closh-let) (argv closh-cons)
+(defmethod call-op ((op closh-let) (argv closh-list)
                     (env closh-env))
   (if (closh-symbolp (closh-car argv))
       (call-let (closh-cdr argv) env (closh-car argv))
       (call-let argv env)))
 
 (defun call-let (argv env &optional (namesym nil))
-  (let* ((args (closh-map (lambda (bind) (closh-nth 0 bind))
-                          (closh-car argv)))
-         (vals (closh-map (lambda (bind) (closh-nth 1 bind))
-                          (closh-car argv)))
+  (let* ((args (closh-nth-all 0 (closh-car argv)))
+         (vals (closh-nth-all 1 (closh-car argv)))
          (func (make-instance 'closh-func
                               :penv env :args args
                               :body (make-body (closh-cdr argv)))))
@@ -77,7 +75,7 @@
       (call-op func vals env)))
 
 
-(defmethod call-op ((op closh-let*) (argv closh-cons)
+(defmethod call-op ((op closh-let*) (argv closh-list)
                     (env closh-env))
   (let ((binds (closh-car argv))
         (body (closh-cdr argv)))
@@ -96,12 +94,10 @@
                                         (closh-cdr binds) body)))
                  (make-closh-list (closh-nth 1 (closh-car binds))) env))))
 
-(defmethod call-op ((op closh-letrec) (argv closh-cons)
+(defmethod call-op ((op closh-letrec) (argv closh-list)
                     (env closh-env))
-  (let* ((args (closh-map (lambda (bind) (closh-nth 0 bind))
-                          (closh-car argv)))
-         (vals (closh-map (lambda (bind) (closh-nth 1 bind))
-                          (closh-car argv)))
+  (let* ((args (closh-nth-all 0 (closh-car argv)))
+         (vals (closh-nth-all 1 (closh-car argv)))
          (nenv (funcall (alambda (syms env)
                           (if (closh-null syms) env
                               (self (closh-cdr syms)
@@ -109,71 +105,88 @@
                                              (make-instance 'closh-undef)
                                              env))))
                         args (make-instance 'closh-local :parent env)))
-         (nenv2 (bind-args args (closh-map (lambda (v) (eval-closh-object v nenv))
-                                           vals)
-                           nenv))
+         (nenv2 (bind-args args (closh-eval-all vals nenv) nenv))
          (func (make-instance 'closh-func
                               :penv nenv2 :args cnil
                               :body (make-body (closh-cdr argv)))))
     (call-op func cnil nenv2)))
 
 ;;if
-(defmethod call-op ((op closh-if) (argv closh-cons)
+(defmethod call-op ((op closh-if) (argv closh-list)
                     (env closh-env))
-  (if (to-bool (eval-closh-object (closh-car argv) env))
-      (eval-closh-object (closh-nth 1 argv) env)
-      (eval-closh-object (closh-nth 2 argv) env)))
+  (if (to-bool (closh-eval-object (closh-car argv) env))
+      (closh-eval-object (closh-nth 1 argv) env)
+      (closh-eval-object (closh-nth 2 argv) env)))
 
 ;;cond
-(defmethod call-op ((op closh-cond) (argv closh-cons)
+(defmethod call-op ((op closh-cond) (argv closh-list)
                     (env closh-env))
   (funcall
    (alambda (clauses)
      (cond ((closh-null clauses) cnil)
            ((or (and (closh-symbolp (closh-car (closh-car clauses)))
                      (eq (sym (closh-car (closh-car clauses))) :else))
-                (to-bool (eval-closh-object
+                (to-bool (closh-eval-object
                           (closh-car (closh-car clauses)) env)))                
-            (eval-closh-object (make-body
+            (closh-eval-object (make-body
                                 (closh-cdr (closh-car clauses)))
                                env))
            (t (self (closh-cdr clauses)))))
    argv))
 
 ;;or
-(defmethod call-op ((op closh-or) (argv closh-cons)
+(defmethod call-op ((op closh-or) (argv closh-list)
                     (env closh-env))
   (funcall
    (alambda (exps)
      (if (closh-null exps)
          (make-instance 'closh-bool :value nil)
-         (let ((val (eval-closh-object (closh-car exps) env)))
+         (let ((val (closh-eval-object (closh-car exps) env)))
            (if (to-bool val) val
                (self (closh-cdr exps))))))
    argv))
 
 ;;and
-(defmethod call-op ((op closh-and) (argv closh-cons)
+(defmethod call-op ((op closh-and) (argv closh-list)
                     (env closh-env))
   (funcall
    (alambda (exps ret)
      (if (closh-null exps) ret
-         (let ((val (eval-closh-object (closh-car exps) env)))
+         (let ((val (closh-eval-object (closh-car exps) env)))
            (if-not (to-bool val) val
                    (self (closh-cdr exps) val)))))
    argv (make-instance 'closh-bool :value t)))
 
 
 ;;begin
-(defmethod call-op ((op closh-begin) (argv closh-cons)
+(defmethod call-op ((op closh-begin) (argv closh-list)
                     (env closh-env))
   (funcall
    (alambda (exps ret)
      (if (closh-null exps)
          ret (self (closh-cdr exps)
-                   (eval-closh-object (closh-car exps) env))))
-   argv cnil))
+                   (closh-eval-object (closh-car exps) env))))
+   argv (make-instance 'closh-undef)))
 
-  
+;;do
+(defmethod call-op ((op closh-do) (argv closh-list)
+                    (env closh-env))
+  (let ((syms (closh-nth-all 0 (closh-nth 0 argv)))
+        (inits (closh-nth-all 1 (closh-nth 0 argv)))
+        (updates (closh-nth-all 2 (closh-nth 0 argv)))
+        (test (closh-car (closh-nth 1 argv)))
+        (ret (closh-cdr (closh-nth 1 argv)))
+        (body (closh-nthcdr 2 argv)))
+    (funcall
+     (alambda (inits env)
+       (let ((nenv (bind-args syms (closh-eval-all inits env)
+                              (make-instance 'closh-local :parent env))))
+         (if (to-bool (closh-eval-object test nenv))
+             (closh-eval-object (make-body ret) nenv)
+             (progn
+               (closh-eval-object (make-body body) nenv)
+               (self updates nenv)))))
+     inits env)))
+
 
 

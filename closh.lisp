@@ -27,9 +27,12 @@
                                         line)
                                 (force-output)
                                 (return-from inner-repl)))
+#|
                        (closh-error
                         (lambda (c) (handle-error c)
-                                (return-from inner-repl))))
+                                (return-from inner-repl)))
+|#
+                       )
           (closh-print (closh-eval (closh-read line)
                                    *global-enviroment*)))))
       (read-eval-print-loop)))
@@ -64,7 +67,8 @@
               cond (make-instance 'closh-cond)
               or (make-instance 'closh-or)
               and (make-instance 'closh-and)
-              begin (make-instance 'closh-begin)))
+              begin (make-instance 'closh-begin)
+              do (make-instance 'closh-do)))
 
 
 (defun add-number-func ()

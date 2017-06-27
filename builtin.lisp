@@ -15,8 +15,7 @@
                  (simple-error
                   (lambda (c) (declare (ignore c))
                           (error 'closh-type-error))))
-    (apply (func op) (mapcar (lambda (exp) (eval-closh-object exp env))
-                             (cl-arglist argv)))))
+    (apply (func op) (cl-arglist (closh-eval-all argv env)))))
 
 (defun closh-exit (&rest argv)
   (declare (ignore argv))
