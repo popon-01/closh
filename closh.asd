@@ -8,6 +8,7 @@
                (:file "condition")
                (:file "listop")
                (:file "env")
+               (:file "syntaxcheck")
                (:file "func")
                (:file "special")
                (:file "builtin")

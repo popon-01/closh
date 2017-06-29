@@ -77,10 +77,19 @@
 ;; evaluate each elements in lst in env
 (defgeneric closh-eval-all (lst env))
 
+;; for closh-list
+;; evaluate elements in lst sequently
+(defgeneric closh-eval-seq (lst env))
+
 ;; for object/closh-op
 ;; call operation with argv(S-exp) in env
 (defgeneric call-op (op argv env))
 
+;; for object/exp
+;; macroexpand functions
+(defgeneric macro-callp (obj env))
+(defgeneric closh-macroexpand-1 (exp env))
+(defgeneric closh-macroexpand (exp env))
 
 ;;///// base-impl /////
 (defmethod dump-to-str ((obj closh-object))

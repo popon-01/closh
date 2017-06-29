@@ -11,6 +11,14 @@
 (defmethod closh-eval-all ((lst closh-list) (env closh-env))
   (closh-map (lambda (x) (closh-eval-object x env)) lst))
 
+(defmethod closh-eval-seq ((lst closh-list) (env closh-env))
+  (funcall
+   (alambda (exps ret)
+     (if (closh-null exps)
+         ret (self (closh-cdr exps)
+                   (closh-eval-object (closh-car exps) env))))
+   lst (make-instance 'closh-undef)))
+
 (defun closh-eval (objects env &optional (ret nil))
   (if (closh-null objects) ret
       (let ((eval-car

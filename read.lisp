@@ -20,11 +20,9 @@
   (:start-symbol closh)
   (:terminals (lparen rparen period quote
                       bool string sym num))
-
   (closh (exp closh (lambda (exp closh)
                       (make-closh-cons exp closh)))
          (exp (lambda (exp) (make-closh-list exp))))
-
   (exp (num (lambda (num)
               (make-instance 'closh-num :value num)))
        (bool (lambda (bool)
@@ -64,12 +62,10 @@
                     (progn (setf endp t) (close in) (self))))))))
 
 (defun closh-load (str)
-    (closh-eval-object
-     (make-body
-      (parse-with-lexer (closh-file-lexer (value str))
-                        closh-parser))
-     *global-enviroment*)
-    str)
+  (closh-eval-seq (parse-with-lexer (closh-file-lexer (value str))
+                                    closh-parser)
+                  *global-enviroment*)
+  str)
 
 (defun closh-read (str)
   (parse-with-lexer (closh-lexer str) closh-parser))

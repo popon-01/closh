@@ -110,14 +110,6 @@ C. 末尾呼び出し最適化(TCO)
 D. Common-Lisp風マクロ
 
 -- 方針 --
-tokenize : Done
--> read (リードマクロの展開とリストへの整形) : Done
--> macro-expand
--> syntax-check (コード実行部を描きやすい形に整形するかも)
--> eval
--> print
-
-
 equal?
 list -> (and (equal? car1 car2) (equal? cdr1 cdr 2))
 string -> string=

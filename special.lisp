@@ -22,7 +22,7 @@
            (make-instance 'closh-func
                           :penv env
                           :args (closh-cdr (closh-nth 0 argv))
-                          :body (make-body (closh-cdr argv)))
+                          :body (closh-cdr argv))
            env)
   (closh-car (closh-nth 0 argv)))
 
@@ -34,7 +34,7 @@
            (make-instance 'closh-macro
                           :penv env
                           :args (closh-cdr (closh-nth 0 argv))
-                          :body (make-body (closh-cdr argv)))
+                          :body (closh-cdr argv))
            env)
   (closh-car (closh-nth 0 argv)))
 
@@ -50,13 +50,13 @@
     (update-env (closh-car argv) val env)
     val))
 
-;lambda
+;;lambda
 (defmethod call-op ((op closh-lambda) (argv closh-list)
                     (env closh-env))
   (make-instance 'closh-func
                  :penv env
                  :args (closh-car argv)
-                 :body (make-body (closh-cdr argv))))
+                 :body (closh-cdr argv)))
 
 ;;let
 (defmethod call-op ((op closh-let) (argv closh-list)
@@ -70,11 +70,11 @@
          (vals (closh-nth-all 1 (closh-car argv)))
          (func (make-instance 'closh-func
                               :penv env :args args
-                              :body (make-body (closh-cdr argv)))))
+                              :body (closh-cdr argv))))
       (when namesym (add-env namesym func env))
       (call-op func vals env)))
 
-
+;;let*
 (defmethod call-op ((op closh-let*) (argv closh-list)
                     (env closh-env))
   (let ((binds (closh-car argv))
@@ -82,23 +82,23 @@
     (if (closh-null binds)
         (call-op (make-instance 'closh-func
                                 :penv env :args cnil
-                                :body (make-body (closh-cdr argv)))
+                                :body (closh-cdr argv))
                  cnil env)
-        (call-op (make-instance 'closh-func
-                                :penv env
-                                :args (make-closh-list
-                                       (closh-nth 0 (closh-car binds)))
-                                :body (make-closh-cons
-                                       (make-instance 'closh-sym :sym :let*)
-                                       (make-closh-cons
-                                        (closh-cdr binds) body)))
-                 (make-closh-list (closh-nth 1 (closh-car binds))) env))))
+        (closh-eval-object
+         (make-closh-cons (make-instance 'closh-sym :sym :let*)
+                          (make-closh-cons
+                           (closh-cdr binds) body))
+         (add-env (closh-nth 0 (closh-car binds))
+                  (closh-eval-object
+                   (closh-nth 1 (closh-car binds)) env)
+                  (make-instance 'closh-local :parent env))))))
 
+;;letrec
 (defmethod call-op ((op closh-letrec) (argv closh-list)
                     (env closh-env))
   (let* ((args (closh-nth-all 0 (closh-car argv)))
          (vals (closh-nth-all 1 (closh-car argv)))
-         (nenv (funcall (alambda (syms env)
+         (nenv (funcall (alambda (syms env) ; init all symbol with #<undef> 
                           (if (closh-null syms) env
                               (self (closh-cdr syms)
                                     (add-env (closh-car syms)
@@ -108,7 +108,7 @@
          (nenv2 (bind-args args (closh-eval-all vals nenv) nenv))
          (func (make-instance 'closh-func
                               :penv nenv2 :args cnil
-                              :body (make-body (closh-cdr argv)))))
+                              :body (closh-cdr argv))))
     (call-op func cnil nenv2)))
 
 ;;if
@@ -128,9 +128,8 @@
                      (eq (sym (closh-car (closh-car clauses))) :else))
                 (to-bool (closh-eval-object
                           (closh-car (closh-car clauses)) env)))                
-            (closh-eval-object (make-body
-                                (closh-cdr (closh-car clauses)))
-                               env))
+            (closh-eval-seq (closh-cdr (closh-car clauses))
+                            env))
            (t (self (closh-cdr clauses)))))
    argv))
 
@@ -161,12 +160,7 @@
 ;;begin
 (defmethod call-op ((op closh-begin) (argv closh-list)
                     (env closh-env))
-  (funcall
-   (alambda (exps ret)
-     (if (closh-null exps)
-         ret (self (closh-cdr exps)
-                   (closh-eval-object (closh-car exps) env))))
-   argv (make-instance 'closh-undef)))
+  (closh-eval-seq argv env))
 
 ;;do
 (defmethod call-op ((op closh-do) (argv closh-list)
@@ -182,9 +176,9 @@
        (let ((nenv (bind-args syms (closh-eval-all inits env)
                               (make-instance 'closh-local :parent env))))
          (if (to-bool (closh-eval-object test nenv))
-             (closh-eval-object (make-body ret) nenv)
+             (closh-eval-seq ret nenv)
              (progn
-               (closh-eval-object (make-body body) nenv)
+               (closh-eval-seq body nenv)
                (self updates nenv)))))
      inits env)))
 
