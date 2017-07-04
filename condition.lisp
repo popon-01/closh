@@ -24,6 +24,8 @@
   ((obj :accessor obj :initarg :obj)))
 (define-condition closh-to-scheme-error (closh-error)
   ((obj :accessor obj :initarg :obj)))
+(define-condition closh-cl-mode-error (closh-error)
+  ())
 
 (defgeneric handle-error (err))
 (defmethod handle-error ((err closh-error))
@@ -63,11 +65,13 @@
   (format t "[closh-error] unsupported type of scheme object :~% ~a~%"
           (dump-to-str (obj err)))
   (force-output))
+
 (defmethod handle-error ((err closh-to-scheme-error))
   (format t "[closh-error] unsupported type of common lisp object :~% ~a~%"
           (obj err))
   (force-output))
 
-
-
+(defmethod handle-error ((err closh-cl-mode-error))
+  (format t "[closh-error] exec cl-mode failed~%")
+  (force-output))
 

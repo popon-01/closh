@@ -63,7 +63,7 @@
         (check-let (closh-cdr exp) (sym (closh-car exp))))
        (:if (check-if (closh-cdr exp)))
        (:cond (check-cond (closh-cdr exp)))
-       ((:and :or :begin :cl-mode)
+       ((:and :or :begin)
         (closh-for-each #'check-exp (closh-cdr exp)))
        (:do (check-do (closh-cdr exp)))
        ((:define :defmacro :load)
@@ -147,7 +147,7 @@
   (syntax-assert :do
     (closh-listp (closh-nth 1 argv))
     (closh-nil-terminate-p (closh-nth 1 argv))
-    (>= (length (closh-nth 1 argv)) 1))
+    (>= (closh-length (closh-nth 1 argv)) 1))
   (closh-for-each #'check-exp (closh-nth 1 argv))
   ;;check body
   (check-body (closh-nthcdr 2 argv)))

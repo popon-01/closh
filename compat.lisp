@@ -1,18 +1,17 @@
 (in-package :closh)
 
-(defpackage :workspace
-  (:use :cl))
+(defpackage :workspace (:use :cl))
 
 (defun init-workspace ()
   (let ((ws (find-package :workspace)))
     (do-symbols (sym ws)
       (when (eq (symbol-package sym) ws)
-        (makunbound sym)))))
+        (makunbound sym)
+        (fmakunbound sym)))))
 
 (defgeneric scheme->cl (object))
 (defmethod scheme->cl ((obj closh-object))
   (error 'closh-from-scheme-error :obj obj))
-
 (defmethod scheme->cl ((obj closh-const))
   (value obj))
 (defmethod scheme->cl ((obj closh-sym))
@@ -20,6 +19,10 @@
 (defmethod scheme->cl ((obj closh-nil)) nil)
 (defmethod scheme->cl ((obj closh-cons))
   (cons (scheme->cl (closh-car obj)) (scheme->cl (closh-cdr obj))))
+(defmethod scheme->cl ((obj closh-func))
+  (lambda (&rest x)
+    (scheme->cl
+     (call-op obj (cl->scheme x) *global-enviroment*))))
 
 
 (defgeneric cl->scheme (object))
@@ -42,6 +45,12 @@
                  :closh-car (cl->scheme (car obj))
                  :closh-cdr (cl->scheme (cdr obj))))
 
+(defmethod cl->scheme ((obj function))
+  (make-instance 'closh-builtin
+                 :func (lambda (&rest argv)
+                         (cl->scheme
+                          (apply obj (mapcar #'scheme->cl argv))))))
+
 
 (defmacro closh-mode (&body body)
   (init-closh)
@@ -49,11 +58,14 @@
 
 (defmethod call-op ((op closh-cl-mode) (argv closh-list)
                     (env closh-env))
-  (unwind-protect (let ((ret nil))
-                    (init-workspace)
-                    (in-package :workspace)
-                    (setf ret (cl->scheme
-                               (eval (cons 'progn (scheme->cl argv)))))
-                    ret)
+  (unwind-protect
+       (handler-bind ((condition (lambda (c) (declare (ignore c))
+                                         (error 'closh-cl-mode-error))))
+         (let ((ret nil))
+           (init-workspace)
+           (in-package :workspace)
+           (setf ret (cl->scheme
+                      (eval (cons 'progn (scheme->cl argv)))))
+           ret))
     (in-package :closh)))
 
