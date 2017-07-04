@@ -60,11 +60,11 @@
   (force-output))
 
 (defmethod handle-error ((err closh-from-scheme-error))
-  (format t "[closh-error] unsupported type of scheme object : ~a~%"
+  (format t "[closh-error] unsupported type of scheme object :~% ~a~%"
           (dump-to-str (obj err)))
   (force-output))
 (defmethod handle-error ((err closh-to-scheme-error))
-  (format t "[closh-error] unsupported type of common lisp object : ~a~%"
+  (format t "[closh-error] unsupported type of common lisp object :~% ~a~%"
           (obj err))
   (force-output))
 

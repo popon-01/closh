@@ -63,7 +63,7 @@
         (check-let (closh-cdr exp) (sym (closh-car exp))))
        (:if (check-if (closh-cdr exp)))
        (:cond (check-cond (closh-cdr exp)))
-       ((:and :or :begin)
+       ((:and :or :begin :cl-mode)
         (closh-for-each #'check-exp (closh-cdr exp)))
        (:do (check-do (closh-cdr exp)))
        ((:define :defmacro :load)
