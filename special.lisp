@@ -35,7 +35,7 @@
                           :penv env
                           :args (closh-cdr (closh-nth 0 argv))
                           :body (closh-cdr argv))
-           env)
+           *global-enviroment*)
   (closh-car (closh-nth 0 argv)))
 
 ;;quote

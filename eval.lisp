@@ -1,7 +1,7 @@
 (in-package :closh)
 
-(defmethod closh-eval-object ((const closh-const) (env closh-env))
-  (declare (ignore env)) const)
+(defmethod closh-eval-object ((const closh-const) (env closh-env)) const)
+(defmethod closh-eval-object ((lst closh-nil) (env closh-env)) lst)
 (defmethod closh-eval-object ((sym closh-sym) (env closh-env))
   (get-env sym env))
 (defmethod closh-eval-object ((lst closh-cons) (env closh-env))
@@ -18,10 +18,4 @@
          ret (self (closh-cdr exps)
                    (closh-eval-object (closh-car exps) env))))
    lst (make-instance 'closh-undef)))
-
-(defun closh-eval (objects env &optional (ret nil))
-  (if (closh-null objects) ret
-      (let ((eval-car
-             (closh-eval-object (closh-car objects) env)))
-        (closh-eval (closh-cdr objects) env eval-car))))
 

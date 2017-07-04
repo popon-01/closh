@@ -53,8 +53,20 @@
 
 (defgeneric closh-last (lst))
 (defmethod closh-last ((lst closh-cons))
-  (if (closh-null (closh-cdr lst)) (closh-car lst)
-      (closh-last (closh-cdr lst))))
+  (if-not (closh-pairp (closh-cdr lst))
+          (closh-car lst)
+          (closh-last (closh-cdr lst))))
+
+(defgeneric closh-lastcell (lst))
+(defmethod closh-lastcell ((lst closh-nil)) lst)
+(defmethod closh-lastcell ((lst closh-cons))
+  (if-not (closh-pairp (closh-cdr lst))
+          lst (closh-lastcell (closh-cdr lst))))
+
+(defgeneric closh-nil-terminate-p (lst))
+(defmethod closh-nil-terminate-p ((lst closh-nil)) t)
+(defmethod closh-nil-terminate-p ((lst closh-cons))
+  (closh-null (closh-cdr (closh-lastcell lst))))
 
 (defgeneric closh-set-car! (lst val))
 (defmethod closh-set-car! ((lst closh-cons) (val closh-object))
@@ -76,6 +88,17 @@
                                 acc))))
    lst cnil))
 
+(defgeneric closh-for-each (func lst))
+(defmethod closh-for-each (func (lst closh-list))
+  (funcall
+   (alambda (lst)
+     (if (closh-null lst) cnil
+         (progn
+           (funcall func (closh-car lst))
+           (self (closh-cdr lst)))))
+   lst))
+
+
 (defgeneric closh-nth (n lst))
 (defmethod closh-nth (n (lst closh-list))
   (if (zerop n)
@@ -95,3 +118,9 @@
       lst (closh-nthcdr (1- n) (closh-cdr lst))))
 (defmethod closh-nthcdr (n (lst closh-nil))
   lst)
+
+(defgeneric unpack-closh-list (lst))
+(defmethod unpack-closh-list ((lst closh-nil)) nil)
+(defmethod unpack-closh-list ((lst closh-cons))
+  (cons (closh-car lst)
+        (unpack-closh-list (closh-cdr lst))))

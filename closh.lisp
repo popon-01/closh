@@ -22,9 +22,12 @@
                        (closh-error
                         (lambda (c) (handle-error c)
                                 (return-from inner-repl))))
-          (closh-print (closh-eval-seq (closh-read line)
-                                       *global-enviroment*)))))
-      (read-eval-print-loop)))
+          (closh-print
+           (closh-eval-seq
+            (closh-map #'check-toplevel
+                       (closh-read line))
+            *global-enviroment*)))))
+    (read-eval-print-loop)))
   
 (defmacro add-global (&body key-and-values)
   `(progn

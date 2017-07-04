@@ -82,14 +82,14 @@
 (defgeneric closh-eval-seq (lst env))
 
 ;; for object/closh-op
-;; call operation with argv(S-exp) in env
+;; call operation with argv in env
 (defgeneric call-op (op argv env))
 
 ;; for object/exp
 ;; macroexpand functions
-(defgeneric macro-callp (obj env))
-(defgeneric closh-macroexpand-1 (exp env))
-(defgeneric closh-macroexpand (exp env))
+(defgeneric macro-callp (obj &key env))
+(defgeneric closh-macroexpand-1 (exp &key env))
+(defgeneric closh-macroexpand (exp &key env))
 
 ;;///// base-impl /////
 (defmethod dump-to-str ((obj closh-object))

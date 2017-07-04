@@ -8,7 +8,7 @@
                (:file "condition")
                (:file "listop")
                (:file "env")
-               (:file "syntaxcheck")
+               (:file "check")
                (:file "func")
                (:file "special")
                (:file "builtin")

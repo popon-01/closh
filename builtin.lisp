@@ -1,12 +1,5 @@
 (in-package :closh)
 
-(defgeneric cl-arglist (lst))
-(defmethod cl-arglist ((lst closh-nil))
-  nil)
-(defmethod cl-arglist ((lst closh-cons))
-  (cons (closh-car lst)
-        (cl-arglist (closh-cdr lst))))
-
 (defmethod call-op ((op closh-builtin) (argv closh-list)
                     (env closh-env))
   (handler-bind ((type-error
@@ -15,7 +8,7 @@
                  (simple-error
                   (lambda (c) (declare (ignore c))
                           (error 'closh-type-error))))
-    (apply (func op) (cl-arglist (closh-eval-all argv env)))))
+    (apply (func op) (unpack-closh-list (closh-eval-all argv env)))))
 
 (defun closh-exit (&rest argv)
   (declare (ignore argv))
