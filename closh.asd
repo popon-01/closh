@@ -12,6 +12,7 @@
                (:file "func")
                (:file "special")
                (:file "builtin")
+               (:file "compat")
                (:file "read")
                (:file "eval")
                (:file "closh"))

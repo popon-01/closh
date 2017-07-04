@@ -57,6 +57,7 @@
 (define-class closh-or (closh-special) (name "or"))
 (define-class closh-begin (closh-special) (name "begin"))
 (define-class closh-do (closh-special) (name "do"))
+(define-class closh-cl-mode (closh-special))
 
 ;;object
 (define-class closh-undef (closh-object))
