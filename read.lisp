@@ -63,8 +63,7 @@
 
 (defun closh-load (str)
   (closh-eval-seq (parse-with-lexer (closh-file-lexer (value str))
-                                    closh-parser)
-                  *global-enviroment*)
+                                    closh-parser))
   str)
 
 (defun closh-read (str)

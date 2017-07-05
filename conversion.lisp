@@ -22,8 +22,7 @@
 (defmethod scheme->cl ((obj closh-func))
   (lambda (&rest x)
     (scheme->cl
-     (call-op obj (cl->scheme x) *global-enviroment*))))
-
+     (call-op obj (cl->scheme x)))))
 
 (defgeneric cl->scheme (object))
 (defmethod cl->scheme ((obj t))
@@ -54,10 +53,11 @@
 
 (defmacro closh-mode (&body body)
   (init-closh)
-  (scheme->cl (closh-eval-seq (cl->scheme body) *global-enviroment*)))
+  (scheme->cl (closh-eval-seq (cl->scheme body))))
 
 (defmethod call-op ((op closh-cl-mode) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
+  (declare (ignore env))
   (unwind-protect
        (handler-bind ((condition (lambda (c) (declare (ignore c))
                                          (error 'closh-cl-mode-error))))

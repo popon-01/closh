@@ -25,8 +25,7 @@
           (closh-print
            (closh-eval-seq
             (closh-map #'check-toplevel
-                       (closh-read line))
-            *global-enviroment*)))))
+                       (closh-read line)))))))
     (read-eval-print-loop)))  
 
 (defun closh-repl ()

@@ -1,7 +1,7 @@
 (in-package :closh)
 
 (defmethod call-op ((op closh-builtin) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (handler-bind ((type-error
                   (lambda (c) (declare (ignore c))
                           (error 'closh-type-error)))

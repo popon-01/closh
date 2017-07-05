@@ -72,31 +72,31 @@
 
 ;; for object
 ;; evaluate object in env
-(defgeneric closh-eval-object (obj env))
+(defgeneric closh-eval-object (obj &optional env))
 
 ;; for closh-list
 ;; evaluate each elements in lst in env
-(defgeneric closh-eval-all (lst env))
+(defgeneric closh-eval-all (lst &optional env))
 
 ;; for closh-list
 ;; evaluate elements in lst sequently
-(defgeneric closh-eval-seq (lst env))
+(defgeneric closh-eval-seq (lst &optional env))
 
 ;; for object/closh-op
 ;; call operation with argv in env
-(defgeneric call-op (op argv env))
+(defgeneric call-op (op argv &optional env))
 
 ;; for object/exp
 ;; macroexpand functions
-(defgeneric macro-callp (obj &key env))
-(defgeneric closh-macroexpand-1 (exp &key env))
-(defgeneric closh-macroexpand (exp &key env))
+(defgeneric macro-callp (obj &optional env))
+(defgeneric closh-macroexpand-1 (exp &optional env))
+(defgeneric closh-macroexpand (exp &optional env))
 
 ;;///// base-impl /////
 (defmethod dump-to-str ((obj closh-object))
   (format nil "#<~a>" (type-of obj)))
 
-(defmethod call-op ((obj closh-object) argv env)
+(defmethod call-op ((obj closh-object) argv &optional env)
   (declare (ignore argv env))
   (error 'closh-funcall-error :callform (dump-to-str obj)))
 

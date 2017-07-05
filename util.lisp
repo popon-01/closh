@@ -22,3 +22,21 @@
 		     lis)))
 	      res)))
 
+(defmacro defcondition (class-name parent &rest slots)
+  `(define-condition ,class-name ,parent
+     ,(loop for slot in slots collect
+           (cond ((not (listp slot))
+                  `(,slot :accessor ,slot
+                          :initarg ,(intern (symbol-name slot))))
+                 ((= (length slot) 1)  
+                  `(,(first slot) :accessor ,(first slot)
+                                  :initarg ,(intern (symbol-name (first slot)))))
+                 ((= (length slot) 2)  
+                  `(,(first slot) :accessor ,(first slot)
+                                  :initarg ,(intern (symbol-name (first slot)))
+                                  :initform ,(second slot)))
+                 ((= (length slot) 3)  
+                  `(,(first slot) :accessor ,(third slot)
+                                  :initarg ,(intern (symbol-name (first slot)))
+                                  :initform ,(second slot)))))))
+

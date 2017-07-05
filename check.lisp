@@ -101,7 +101,8 @@
            (closh-nil-terminate-p bind)
            (= (closh-length bind) 2)
            (closh-symbolp (closh-nth 0 bind)))
-         (check-exp (closh-nth 1 bind)))))
+         (check-exp (closh-nth 1 bind))
+         (self (closh-cdr binds)))))
    (closh-car argv))
   (check-body (closh-cdr argv)))
 

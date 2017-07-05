@@ -6,7 +6,7 @@
 
 ;;define
 (defmethod call-op ((op closh-define) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (if (closh-listp (closh-car argv))
       (call-define-func argv env)
       (call-define-var argv env)))
@@ -29,7 +29,7 @@
 
 ;;defmacro
 (defmethod call-op ((op closh-defmacro) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (add-env (closh-car (closh-nth 0 argv))
            (make-instance 'closh-macro
                           :penv env
@@ -40,19 +40,19 @@
 
 ;;quote
 (defmethod call-op ((op closh-quote) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (closh-car argv))
 
 ;;set!
 (defmethod call-op ((op closh-set!) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (let ((val (closh-eval-object (closh-nth 1 argv) env)))
     (update-env (closh-car argv) val env)
     val))
 
 ;;lambda
 (defmethod call-op ((op closh-lambda) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (make-instance 'closh-func
                  :penv env
                  :args (closh-car argv)
@@ -60,7 +60,7 @@
 
 ;;let
 (defmethod call-op ((op closh-let) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (if (closh-symbolp (closh-car argv))
       (call-let (closh-cdr argv) env (closh-car argv))
       (call-let argv env)))
@@ -76,7 +76,7 @@
 
 ;;let*
 (defmethod call-op ((op closh-let*) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (let ((binds (closh-car argv))
         (body (closh-cdr argv)))
     (if (closh-null binds)
@@ -95,7 +95,7 @@
 
 ;;letrec
 (defmethod call-op ((op closh-letrec) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (let* ((args (closh-nth-all 0 (closh-car argv)))
          (vals (closh-nth-all 1 (closh-car argv)))
          (nenv (funcall (alambda (syms env) ; init all symbol with #<undef> 
@@ -113,14 +113,14 @@
 
 ;;if
 (defmethod call-op ((op closh-if) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (if (to-bool (closh-eval-object (closh-car argv) env))
       (closh-eval-object (closh-nth 1 argv) env)
       (closh-eval-object (closh-nth 2 argv) env)))
 
 ;;cond
 (defmethod call-op ((op closh-cond) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (funcall
    (alambda (clauses)
      (cond ((closh-null clauses) cnil)
@@ -135,7 +135,7 @@
 
 ;;or
 (defmethod call-op ((op closh-or) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (funcall
    (alambda (exps)
      (if (closh-null exps)
@@ -147,7 +147,7 @@
 
 ;;and
 (defmethod call-op ((op closh-and) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (funcall
    (alambda (exps ret)
      (if (closh-null exps) ret
@@ -159,12 +159,12 @@
 
 ;;begin
 (defmethod call-op ((op closh-begin) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (closh-eval-seq argv env))
 
 ;;do
 (defmethod call-op ((op closh-do) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (let ((syms (closh-nth-all 0 (closh-nth 0 argv)))
         (inits (closh-nth-all 1 (closh-nth 0 argv)))
         (updates (closh-nth-all 2 (closh-nth 0 argv)))

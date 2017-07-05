@@ -9,11 +9,12 @@
 (defgeneric bind-args (sym argv env))
 (defmethod bind-args ((obj closh-object) (argv closh-list)
                       (env closh-env))
-  (error "~a is not symbol" (dump-to-str obj)))
+  (error "[implementation error] bind-args failed : ~a is not symbol"
+         (dump-to-str obj))) 
 (defmethod bind-args ((syms closh-cons) (argv closh-list)
                       (env closh-env))
-  (if (null argv)
-      (error "invalid number of arguments")
+  (if (closh-null argv)
+      (error 'closh-argnum-error)
       (bind-args (closh-cdr syms) (closh-cdr argv)
                  (add-env (closh-car syms) (closh-car argv) env))))
 (defmethod bind-args ((sym closh-sym) (val closh-list)
@@ -23,41 +24,41 @@
                       (env closh-env))
   (declare (ignore empty))
   (if-not (closh-null argv)
-          (error "invalid number of arguments") env))
+          (error 'closh-argnum-error) env))
 
 
 ;;///// lambda /////
 (defmethod call-op ((func closh-func) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (call-func func (closh-eval-all argv env)))
 
 ;;///// macros /////
 (defmethod macro-callp ((obj closh-object)
-                        &key (env *global-enviroment*))
+                        &optional (env *global-enviroment*))
   (declare (ignore env)) nil)
 (defmethod macro-callp ((lst closh-cons)
-                        &key (env *global-enviroment*))
+                        &optional (env *global-enviroment*))
   (and (symbolp (closh-car lst))
        (closh-macrop (get-env (closh-car lst) env))))
 
 (defmethod closh-macroexpand-1 ((exp closh-object)
-                                &key (env *global-enviroment*))
+                                &optional (env *global-enviroment*))
   (declare (ignore env)) (values exp nil))
 
 (defmethod closh-macroexpand-1 ((lst closh-cons)
-                                &key (env *global-enviroment*))
-  (if-not (macro-callp lst :env env)
+                                &optional (env *global-enviroment*))
+  (if-not (macro-callp lst env)
           (values lst nil)
           (values (call-func (get-env (closh-car lst) env)
                              (closh-cdr lst))
                              t)))
 
 (defmethod closh-macroexpand ((exp closh-exp)
-                              &key (env *global-enviroment*))
-  (multiple-value-bind (ret callp) (closh-macroexpand-1 exp :env env)
-    (if callp (closh-macroexpand ret :env env) ret)))
+                              &optional (env *global-enviroment*))
+  (multiple-value-bind (ret callp) (closh-macroexpand-1 exp env)
+    (if callp (closh-macroexpand ret env) ret)))
 
 (defmethod call-op ((macro-op closh-macro) (argv closh-list)
-                    (env closh-env))
+                    &optional (env *global-enviroment*))
   (closh-eval-object (call-func macro-op argv) env))
 
