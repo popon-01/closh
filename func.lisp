@@ -38,7 +38,7 @@
   (declare (ignore env)) nil)
 (defmethod macro-callp ((lst closh-cons)
                         &optional (env *global-enviroment*))
-  (and (symbolp (closh-car lst))
+  (and (closh-symbolp (closh-car lst))
        (closh-macrop (get-env (closh-car lst) env))))
 
 (defmethod closh-macroexpand-1 ((exp closh-object)
@@ -60,5 +60,6 @@
 
 (defmethod call-op ((macro-op closh-macro) (argv closh-list)
                     &optional (env *global-enviroment*))
-  (closh-eval-object (call-func macro-op argv) env))
+  (declare (ignore env))
+  (error "[implementation error] macro does not expanded"))
 

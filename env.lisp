@@ -133,6 +133,8 @@
                       procedure? (closh-type-pred #'closh-procp)
                       read (lambda (str)
                              (closh-car (closh-read (value str))))
+                      macroexpand #'closh-macroexpand
+                      macroexpand-1 #'closh-macroexpand-1
                       load #'closh-load
                       write #'closh-print))
 
