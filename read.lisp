@@ -6,6 +6,9 @@
   ("\\)"    (return (values 'rparen 'rparen)))
   ("\\."    (return (values 'period 'period)))
   ("'"      (return (values 'quote 'quote)))
+  ("`"      (return (values 'bquote 'bquote)))
+  (",@"     (return (values 'unpack 'unpack)))
+  (","      (return (values 'comma 'comma)))
   ("#f"     (return (values 'bool nil)))
   ("#t"     (return (values 'bool t)))
   ("\"([^\\\\\"]|\\\\.)*?\"" (return (values 'string
@@ -16,38 +19,47 @@
        (return (values 'sym (intern (string-upcase $@) 'keyword)))))
   ("." (return (values 'undefined 'undefined))))
 
+
 (define-parser closh-parser
   (:start-symbol closh)
   (:terminals (lparen rparen period quote
                       bool string sym num))
-  (closh (exp closh (lambda (exp closh)
-                      (make-closh-cons exp closh)))
-         (exp (lambda (exp) (make-closh-list exp))))
-  (exp (num (lambda (num)
-              (make-instance 'closh-num :value num)))
-       (bool (lambda (bool)
-               (make-instance 'closh-bool :value bool)))
-       (string (lambda (str)
-                 (make-instance 'closh-str :value str)))
-       (lparen rparen (lambda (lp rp)
-                        (declare (ignore lp rp))
-                        (make-closh-list)))
-       (sym (lambda (sym)
-              (make-instance 'closh-sym :sym sym)))
-       (lparen multiple-exp rparen (lambda (lp exps rp)
-                                     (declare (ignore lp rp)) exps))
-       (quote exp (lambda (q exp)
-                    (declare (ignore q))
-                    (make-closh-list (make-instance 'closh-sym
-                                                    :sym :quote)
-                                     exp))))
-  (multiple-exp (exp multiple-exp (lambda (exp exps)
-                                    (make-closh-cons exp exps))) 
-                (exp (lambda (exp)
-                       (make-closh-list exp)))
-                (exp period exp (lambda (exp1 p exp2)
-                                  (declare (ignore p))
-                                  (make-closh-cons exp1 exp2)))))
+  
+  (closh
+   (exp closh
+     (lambda (exp closh) (make-closh-cons exp closh)))
+   (exp
+    (lambda (exp) (make-closh-list exp))))
+  
+  (exp
+   (atom
+    (lambda (atom) atom))
+   (lparen multiple-exp rparen
+    (lambda (lp exps rp) (declare (ignore lp rp)) exps))
+   (quote exp
+    (lambda (q exp) (declare (ignore q))
+            (make-closh-list (make-instance 'closh-sym :sym :quote)
+                             exp))))
+  
+  (multiple-exp
+   (exp multiple-exp
+    (lambda (exp exps) (make-closh-cons exp exps))) 
+   (exp
+    (lambda (exp) (make-closh-list exp)))
+   (exp period exp
+    (lambda (exp1 p exp2) (declare (ignore p)) (make-closh-cons exp1 exp2))))
+    
+  (atom
+   (num
+    (lambda (num) (make-instance 'closh-num :value num)))
+   (bool
+    (lambda (bool) (make-instance 'closh-bool :value bool)))
+   (string
+    (lambda (str) (make-instance 'closh-str :value str)))
+   (lparen rparen
+    (lambda (lp rp) (declare (ignore lp rp)) (make-closh-list)))
+   (sym
+    (lambda (sym) (make-instance 'closh-sym :sym sym)))))
 
 (defun closh-file-lexer (path)
   (let ((in (open path)) (clexer nil) (endp nil))

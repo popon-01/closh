@@ -105,11 +105,8 @@
                                              (make-instance 'closh-undef)
                                              env))))
                         args (make-instance 'closh-local :parent env)))
-         (nenv2 (bind-args args (closh-eval-all vals nenv) nenv))
-         (func (make-instance 'closh-func
-                              :penv nenv2 :args cnil
-                              :body (closh-cdr argv))))
-    (call-op func cnil nenv2)))
+         (nenv2 (bind-args args (closh-eval-all vals nenv) nenv)))
+    (closh-eval-seq (closh-cdr argv) nenv2)))
 
 ;;if
 (defmethod call-op ((op closh-if) (argv closh-list)

@@ -7,6 +7,7 @@
 (define-class closh-local (closh-env) parent)
 
 (defgeneric add-env (sym value env))
+(defgeneric closh-boundp (sym env))
 (defgeneric get-env (sym env))
 (defgeneric update-env (sym value env))
 
@@ -19,6 +20,14 @@
                     (env closh-env))
   (setf (gethash sym (table env)) value) env)
 
+(defmethod closh-boundp ((sym closh-sym) (env closh-global))
+  (multiple-value-bind (val foundp) (gethash (sym sym) (table env))
+    (declare (ignore val)) foundp))
+
+(defmethod closh-boundp ((sym closh-sym) (env closh-local))
+  (multiple-value-bind (val foundp) (gethash (sym sym) (table env))
+    (declare (ignore val))
+    (if foundp t (closh-boundp sym (parent env)))))
 
 (defmethod get-env ((sym closh-sym) (env closh-global))
   (multiple-value-bind (val foundp) (gethash (sym sym) (table env))

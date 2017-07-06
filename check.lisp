@@ -20,8 +20,8 @@
           ((some (lambda (x) (eq (sym (closh-car raw-exp)) x))
                  '(:define :defmacro))
            (check-define raw-exp))
-          (t (check-exp raw-exp)))
-    raw-exp))
+          (t (check-exp raw-exp))))
+  exp)
 
 (defun check-define (exp)
   (when (and (closh-listp exp)
@@ -32,7 +32,7 @@
               (closh-symbolp (closh-nth 1 exp)))
          (syntax-assert (sym (closh-car exp))
            (= (closh-length exp) 3))
-         (check-exp (closh-nth 2 exp)))
+         (check-exp (closh-macroexpand (closh-nth 2 exp))))
         ((closh-pairp (closh-nth 1 exp))
          (syntax-assert (sym (closh-car exp))
            (>= (closh-length exp) 2)
@@ -49,7 +49,9 @@
   (when (closh-pairp exp)
     (if-not
      (closh-symbolp (closh-car exp))
-     (closh-for-each #'check-exp exp)
+     (closh-for-each
+      #'check-exp
+      (closh-map #'closh-macroexpand exp))
      (case (sym (closh-car exp))
        (:lambda (check-lambda (closh-cdr exp)))
        (:quote (check-quote (closh-cdr exp)))
@@ -64,10 +66,16 @@
        (:if (check-if (closh-cdr exp)))
        (:cond (check-cond (closh-cdr exp)))
        ((:and :or :begin)
-        (closh-for-each #'check-exp (closh-cdr exp)))
+        (closh-for-each
+         #'check-exp
+         (closh-macroexpand (closh-cdr exp))))
        (:do (check-do (closh-cdr exp)))
+       (:clmode #|don't check|# )
        ((:define :defmacro :load)
-        (error 'closh-call-error :op (sym (closh-car exp))))))))
+        (error 'closh-call-error :op (sym (closh-car exp))))
+       (t (closh-for-each
+           #'check-exp
+           (closh-map #'closh-macroexpand exp)))))))
 
 (defun check-lambda (argv)
   (syntax-assert :lambda
@@ -85,7 +93,7 @@
   (syntax-assert :set!
     (= (closh-length argv) 2)
     (closh-symbolp (closh-nth 0 argv)))
-  (check-exp (closh-nth 1 argv)))
+  (check-exp (closh-macroexpand (closh-nth 1 argv))))
 
 (defun check-let (argv form)
   (syntax-assert form
@@ -101,7 +109,7 @@
            (closh-nil-terminate-p bind)
            (= (closh-length bind) 2)
            (closh-symbolp (closh-nth 0 bind)))
-         (check-exp (closh-nth 1 bind))
+         (check-exp (closh-macroexpand (closh-nth 1 bind)))
          (self (closh-cdr binds)))))
    (closh-car argv))
   (check-body (closh-cdr argv)))
@@ -109,7 +117,9 @@
 (defun check-if (argv)
   (syntax-assert :if
     (<= 2 (closh-length argv) 3))
-  (closh-for-each #'check-exp argv))
+  (closh-for-each
+   #'check-exp
+   (closh-map #'closh-macroexpand argv)))
 
 (defun check-cond (argv)
   (unless (closh-null argv)
@@ -123,9 +133,13 @@
           (progn
             (syntax-assert :cond
               (closh-null (closh-cdr argv)))
-            (closh-for-each #'check-exp (closh-cdr clause)))
+            (closh-for-each
+             #'check-exp
+             (closh-map #'closh-macroexpand (closh-cdr clause))))
           (progn
-            (closh-for-each #'check-exp clause)
+            (closh-for-each
+             #'check-exp
+             (closh-map #'closh-macroexpand clause))
             (check-cond (closh-cdr argv)))))))
 
 (defun check-do (argv)
@@ -141,7 +155,9 @@
            (closh-nil-terminate-p bind)
            (= (closh-length bind) 3)
            (closh-symbolp (closh-car bind)))
-         (closh-for-each #'check-exp (closh-cdr bind))
+         (closh-for-each
+          #'check-exp
+          (closh-map #'closh-macroexpand (closh-cdr bind)))
          (self (closh-cdr binds)))))
    (closh-nth 0 argv))
   ;;check return value block
@@ -149,7 +165,9 @@
     (closh-listp (closh-nth 1 argv))
     (closh-nil-terminate-p (closh-nth 1 argv))
     (>= (closh-length (closh-nth 1 argv)) 1))
-  (closh-for-each #'check-exp (closh-nth 1 argv))
+  (closh-for-each
+   #'check-exp
+   (closh-map #'closh-macroexpand (closh-nth 1 argv)))
   ;;check body
   (check-body (closh-nthcdr 2 argv)))
 
