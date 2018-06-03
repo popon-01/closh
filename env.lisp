@@ -76,6 +76,10 @@
   (add-global define (make-instance 'closh-define)
               defmacro (make-instance 'closh-defmacro)
               quote (make-instance 'closh-quote)
+              quasiquote (make-instance 'closh-quasiquote)
+              unquote (make-instance 'closh-unquote)
+              unquote-splicing
+              (make-instance 'closh-unquote-splicing)
               set! (make-instance 'closh-set!)
               lambda (make-instance 'closh-lambda)
               let (make-instance 'closh-let)
@@ -145,7 +149,10 @@
                       macroexpand #'closh-macroexpand
                       macroexpand-1 #'closh-macroexpand-1
                       load #'closh-load
-                      write #'closh-print))
+                      write #'closh-print
+                      gensym (lambda ()
+                               (make-instance 'closh-sym
+                                              :sym (gensym)))))
 
 (defun init-closh ()
   (setf *global-enviroment* (make-instance 'closh-global))

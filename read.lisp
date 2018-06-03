@@ -6,9 +6,9 @@
   ("\\)"    (return (values 'rparen 'rparen)))
   ("\\."    (return (values 'period 'period)))
   ("'"      (return (values 'quote 'quote)))
-  ("`"      (return (values 'bquote 'bquote)))
-  (",@"     (return (values 'unpack 'unpack)))
-  (","      (return (values 'comma 'comma)))
+  ("`"      (return (values 'quasiquote 'quasiquote)))
+  (",@"     (return (values 'unquote-splicing 'unquote-splicing)))
+  ("\\,"    (return (values 'unquote 'unquote)))
   ("#f"     (return (values 'bool nil)))
   ("#t"     (return (values 'bool t)))
   ("\"([^\\\\\"]|\\\\.)*?\"" (return (values 'string
@@ -22,8 +22,10 @@
 
 (define-parser closh-parser
   (:start-symbol closh)
-  (:terminals (lparen rparen period quote
-                      bool string sym num))
+  (:terminals (lparen rparen period
+               quote quasiquote
+               unquote unquote-splicing
+               bool string sym num))
   
   (closh
    (exp closh
@@ -39,6 +41,18 @@
    (quote exp
     (lambda (q exp) (declare (ignore q))
             (make-closh-list (make-instance 'closh-sym :sym :quote)
+                             exp)))
+   (quasiquote exp
+    (lambda (qq exp) (declare (ignore qq))
+            (make-closh-list (make-instance 'closh-sym :sym :quasiquote)
+                             exp)))
+   (unquote exp
+    (lambda (uq exp) (declare (ignore uq))
+            (make-closh-list (make-instance 'closh-sym :sym :unquote)
+                             exp)))
+   (unquote-splicing exp
+    (lambda (uq-splice exp) (declare (ignore uq-splice))
+            (make-closh-list (make-instance 'closh-sym :sym :unquote-splicing)
                              exp))))
   
   (multiple-exp

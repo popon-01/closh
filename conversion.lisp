@@ -52,8 +52,9 @@
 
 
 (defmacro closh-mode (&body body)
-  (init-closh)
-  (scheme->cl (closh-eval-seq (cl->scheme body))))
+  `(progn
+     (init-closh)
+     (scheme->cl (closh-eval-seq (cl->scheme ',body)))))
 
 (defmethod call-op ((op closh-cl-mode) (argv closh-list)
                     &optional (env *global-enviroment*))

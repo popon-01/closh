@@ -41,7 +41,101 @@
 ;;quote
 (defmethod call-op ((op closh-quote) (argv closh-list)
                     &optional (env *global-enviroment*))
+  (declare (ignore env))
   (closh-car argv))
+
+;;quasiquote
+(defmethod call-op ((op closh-quasiquote) (argv closh-list)
+                    &optional (env *global-enviroment*))
+  (expand-quasiquote (closh-car argv) env 1))
+
+(defgeneric expand-quasiquote (exp env n))
+(defmethod expand-quasiquote ((exp closh-exp) (env closh-env) n) exp)
+(defmethod expand-quasiquote ((exp closh-cons) (env closh-env) n)
+  (if-not (closh-symbolp (closh-car exp))
+          (apply #'closh-append
+                 (mapcar (lambda (x) (qq-list-elem x env n))
+                         (unpack-closh-list exp)))
+          (case (sym (closh-car exp))
+            (:quasiquote
+             (make-closh-list
+              (closh-car exp)
+              (expand-quasiquote (closh-nth 1 exp) env (1+ n))))
+            (:unquote
+             (if (= n 1)
+                 (progn
+                   (check-exp (closh-macroexpand (closh-nth 1 exp)))
+                   (closh-eval-object (closh-nth 1 exp) env))
+                 (make-closh-list (closh-car exp)
+                                  (expand-quasiquote (closh-nth 1 exp)
+                                                     env (1- n)))))
+            (:unquote-splicing
+             (if (= n 1)
+                 (error 'closh-unquote-error :form exp)
+                 (make-closh-list (closh-car exp)
+                                  (expand-quasiquote (closh-nth 1 exp)
+                                                     env (1- n)))))
+            (t (apply #'closh-append
+                      (mapcar (lambda (x) (qq-list-elem x env n))
+                              (unpack-closh-list exp)))))))
+
+(defgeneric qq-list-elem (elem env n))
+(defmethod qq-list-elem ((obj closh-exp) (env closh-env) n)
+  (make-closh-list obj))
+(defmethod qq-list-elem ((lst closh-cons) (env closh-env) n)
+  (if-not (closh-symbolp (closh-car lst))
+          (make-closh-list (expand-quasiquote lst env n))
+          (case (sym (closh-car lst))
+            (:quasiquote
+             (unless (and (closh-nil-terminate-p lst)
+                          (= (closh-length lst) 2))
+               (error 'closh-unquote-error :form lst))
+             (make-closh-list (make-closh-list
+                               (closh-car lst)
+                               (expand-quasiquote (closh-nth 1 lst)
+                                                  env (1+ n)))))
+            (:unquote
+             (unless (and (closh-nil-terminate-p lst)
+                          (= (closh-length lst) 2))
+               (error 'closh-unquote-error :form lst))             
+             (if (= n 1)
+                 (progn
+                   (check-exp (closh-macroexpand (closh-nth 1 lst)))
+                   (make-closh-list
+                    (closh-eval-object (closh-nth 1 lst) env)))
+                 (make-closh-list (make-closh-list
+                                   (closh-car lst)
+                                   (expand-quasiquote (closh-nth 1 lst)
+                                                      env (1- n))))))
+            (:unquote-splicing
+             (unless (and (closh-nil-terminate-p lst)
+                          (= (closh-length lst) 2))
+               (error 'closh-unquote-error :form lst))             
+             (if (= n 1)
+                 (progn
+                   (check-exp (closh-macroexpand (closh-nth 1 lst)))
+                   (closh-eval-object (closh-nth 1 lst) env))
+                 (make-closh-list (make-closh-list
+                                   (closh-car lst)
+                                   (expand-quasiquote (closh-nth 1 lst)
+                                                      env (1- n))))))
+            (t (make-closh-list (expand-quasiquote lst env n))))))
+
+;;unquote
+(defmethod call-op ((op closh-unquote) (argv closh-list)
+                    &optional (env *global-enviroment*))
+  (declare (ignore env))
+  (error 'closh-unquote-error
+         :form (make-closh-cons (make-instance 'closh-sym :sym :unquote)
+                                argv)))
+
+;;unquote-splicing
+(defmethod call-op ((op closh-unquote-splicing) (argv closh-list)
+                    &optional (env *global-enviroment*))
+  (declare (ignore env))
+  (error 'closh-unquote-error
+         :form (make-closh-cons (make-instance 'closh-sym :sym :unquote-splicing)
+                                argv)))
 
 ;;set!
 (defmethod call-op ((op closh-set!) (argv closh-list)

@@ -54,7 +54,8 @@
       (closh-map #'closh-macroexpand exp))
      (case (sym (closh-car exp))
        (:lambda (check-lambda (closh-cdr exp)))
-       (:quote (check-quote (closh-cdr exp)))
+       ((:quote :quasiquote)
+        (check-quote (closh-cdr exp)))
        (:set! (check-set! (closh-cdr exp)))
        (:let (cond ((< (closh-length exp) 2)
                     (error 'closh-malform-error :spform :let))
@@ -70,7 +71,7 @@
          #'check-exp
          (closh-macroexpand (closh-cdr exp))))
        (:do (check-do (closh-cdr exp)))
-       (:clmode #|don't check|# )
+       ((:unquote :unquote-splicing :clmode) #|don't check|# )
        ((:define :defmacro :load)
         (error 'closh-call-error :op (sym (closh-car exp))))
        (t (closh-for-each

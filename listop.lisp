@@ -32,18 +32,6 @@
                (make-closh-cons (closh-car lst) acc))))
    lst (make-instance 'closh-nil)))
 
-(defun closh-append (&rest lsts)
-  (funcall
-   (alambda (lsts acc)
-     (cond ((null lsts) (closh-reverse acc))
-           ((closh-null (car lsts))
-            (self (cdr lsts) acc))
-           (t (self (cons (closh-cdr (car lsts)) (cdr lsts))
-                    (make-closh-cons (closh-car (car lsts))
-                                     acc)))))
-   lsts (make-instance 'closh-nil)))
-
-
 (defgeneric closh-memq (item lst))
 (defmethod closh-memq ((item closh-object) (lst closh-nil))
   (make-instance 'closh-bool :value nil))
@@ -98,7 +86,20 @@
            (self (closh-cdr lst)))))
    lst))
 
-
+(defun closh-append (&rest lsts)
+  (let ((rev (reverse lsts)))
+    (if (null rev) cnil
+        (funcall
+         (alambda (lsts acc)
+           (cond ((null lsts) acc)
+                 ((closh-null (car lsts))
+                  (self (cdr lsts) acc))
+                 (t (self (cons (closh-cdr (car lsts)) (cdr lsts))
+                          (make-closh-cons (closh-car (car lsts))
+                                           acc)))))
+         (mapcar #'closh-reverse (cdr rev))
+         (car rev)))))
+    
 (defgeneric closh-nth (n lst))
 (defmethod closh-nth (n (lst closh-list))
   (if (zerop n)
@@ -118,6 +119,11 @@
       lst (closh-nthcdr (1- n) (closh-cdr lst))))
 (defmethod closh-nthcdr (n (lst closh-nil))
   lst)
+
+(defgeneric closh-fold (func init lst))
+(defmethod closh-fold (func init (lst closh-nil)) init)
+(defmethod closh-fold (func init (lst closh-cons))
+  (closh-fold func (funcall func init (closh-car lst)) (closh-cdr lst)))
 
 (defgeneric unpack-closh-list (lst))
 (defmethod unpack-closh-list ((lst closh-nil)) nil)
