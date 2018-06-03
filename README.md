@@ -1,6 +1,5 @@
 # Closh
 SchemeサブセットのCommon Lispによる実装です。
-実行形式(closh)を入れてあります。
 
 ## サポートする特殊形式
     lambda, quote('), quasiquote(`), 
@@ -12,28 +11,28 @@ SchemeサブセットのCommon Lispによる実装です。
     
 ## サポートする関数
 ### 整数
-    number?, +, -, *, /, =, <, <=, >, >=
+number?, +, -, *, /, =, <, <=, >, >=
 
 ### リスト
-    null?, pair?, list?, symbol?,
-    car, cdr, cons, list, length, memq, last, append,
-    set-car!, set-cdr!
+null?, pair?, list?, symbol?,
+car, cdr, cons, list, length, memq, last, append,
+set-car!, set-cdr!
 
 ### ブール値
-    boolean?, not
+boolean?, not
 
 ### 文字列
-    string?, string-append,
-    symbol->string, string->symbol, string->number, number->string
+string?, string-append,
+symbol->string, string->symbol, string->number, number->string
 
 ### 関数
-    procedure?
+procedure?
 
 ### 比較
-    eq?, neq?, equal?
+eq?, neq?, equal?
 
 ### その他
-    load
+load
 
 ## defmacro
 Schemeのdefineのスタイルで書いてください。
